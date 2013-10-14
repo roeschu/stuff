@@ -1,0 +1,164 @@
+typo3 auf shared hosting plattformen 
+
+verwendet:
+
+-debian, apache2,php4,mysql,libapache-php4-mod,php4-mysql, php4-gd (für typo3)
+
+1) sinnvolle php ini settings global:
+
+
+safe_mode = on
+extension=gd.so
+extension=mysql.so
+#exec wird von typo3 viel verwendet, deshalb nicht excluden
+disable_functions = system,passthru,popen,escapeshellcmd,shell-exec
+#standard ist 8M, zuwenig fuer typo, besser 16,24 oder 32
+memory_limit = 32M 
+
+
+2) php settings in einzelnen vhosts (namebased) fuer sinnvolle typo3 verwendung
+
+
+
+NameVirtualHost *
+<VirtualHost *>
+
+        #Adminemail
+        ServerAdmin depp@imumzug.ch
+        #Primaerer Hostheader
+        ServerName www.custa.ch
+        #Zusaetzliche Hostheader
+        ServerAlias custa.ch dev.custa.ch
+        #Webroot
+        DocumentRoot /data/webdata/customer_a
+
+
+        ################################################################
+        #PHP VALUES
+        ################################################################
+        #Auf "on" wenn php benoetigt wird, "off" fuer php ausschalten
+	php_admin_flag engine on
+
+	#adminflags
+        php_admin_flag safe_mode on
+
+        #ACHTUNG KONSEQUENZEN BENDENKEN WENN DIES AUF ON GESCHALTET WIRD (UNSICHER)
+        php_admin_flag register_globals off
+
+        #ACHTUNG KONSEQUENZEN BENDENKEN WENN DIES AUF ON GESCHALTET WIRD (UNSICHER)
+        php_admin_value magic_quotes_runtime off
+
+        #ACHTUNG KONSEQUENZEN BENDENKEN WENN DIES AUF ON GESCHALTET WIRD (UNSICHER)
+        php_admin_value magic_quotes_gpc off
+
+        #Wenn php aktiviert ist: entkommentisieren, Pfade anpassen, directories machen etc.
+        #bei typo3 achtung mit open_basedir und safe_ mode...
+
+
+	#in safe_exec alle programme symlinken (diff,tar etc.) welche typo3 braucht.
+	php_admin_value safe_mode_exec_dir = /data/webdata/safe_exec/
+        php_admin_value open_basedir /data/webdata/customer_a/typo3
+        php_admin_value upload_tmp_dir /data/webdata/customer_a/tmp
+        php_admin_value session.save_path /data/webdata/customer_a/tmp
+        ###################################################################
+
+
+
+        #Settings zu cgi directory
+        ScriptAlias /cgi-bin /data/webdata/cgi
+        <Directory "/data/webdata/cgi">
+                AllowOverride None
+                Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
+                Order allow,deny
+                Allow from all
+        </Directory>
+
+
+        #Awstats Icons Directory
+        Alias /awicons /data/webdata/awstatsicons/icon
+        <Directory /data/webdata/awstatsicons>
+        	Order allow,deny
+       		Allow from all
+        </Directory>
+
+
+
+
+        #Server errorlog, global gesetzt, kann hier fuer vhost geandert werden
+        #ErrorLog /var/log/apache2/error.log
+
+
+        #Globlab gesetzt, per vhost hier aendern
+        #Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        #LogLevel warn
+
+        #Ort und Art des Weblogs fuer vhost
+        CustomLog /data/logdata/customer_a/access.log combined
+
+
+
+</VirtualHost>
+
+
+3) runterladen der aktuellen typo3 (hier 3.8.1) src's und entpacken im directory wo alle customer webroots beinhaltet sind
+
+z.B in /data/webdata/typo3_src-3.8.1
+
+dann waeren customer webroots in
+
+/data/webdata/customera
+/data/webdata/customerb
+/data/webdata/customerc
+...etc.
+
+
+4) symlink erstellen typo3_src (oder wie gewuenscht) auf src's erstellen
+
+ln -s ./typo3_src-3.8.1 typo3_src
+
+
+drwxr-xr-x  3 root    www-data 4096 2006-02-08 21:22 cgi
+drwxrwx---  6 root www-data 4096 2006-02-09 16:37 cust_a
+drwxr-xr-x  2 root    www-data 4096 2006-02-08 11:49 cust_b
+drwxr-xr-x  2 root    www-data 4096 2006-02-08 11:49 cust_c
+lrwxrwxrwx  1 root    root       17 2006-02-09 15:49 typo3_src -> ./typo3_src-3.8.1
+drwxrwx---  5 root    www-data 4096 2006-02-09 15:48 typo3_src-3.8.1
+
+
+damit kann im falle eines typo3 updates lediglich der symlink geloescht werden und auf die neue version (z.b 3.9.1) neu
+gesetzt werden und alle typo3 webs auf diesem server sind auf dem neuesten stand.
+
+
+
+5) symlinks t3lib, tslib und typo3 lib wie unten dargestellt erstellen
+
+
+lrwxrwxrwx   1 httpd    httpd          17 Aug  1 13:54 showpic.php -> tslib/showpic.php
+lrwxrwxrwx   1 httpd    httpd          19 Aug  1 13:54 t3lib -> ../typo3_src/t3lib/
+lrwxrwxrwx   1 httpd    httpd          19 Aug  1 13:54 tslib -> ../typo3_src/tslib/
+lrwxrwxrwx   1 httpd    httpd          19 Aug  1 13:54 typo3 -> ../typo3_src/typo3/
+
+
+
+6) symlinks index.php und media und showpic.php wie unten dargestellt erstellen
+
+lrwxrwxrwx   1 httpd    httpd          18 Aug  1 13:54 index.php -> tslib/index_ts.php
+lrwxrwxrwx   1 httpd    httpd          17 Aug  1 13:54 showpic.php -> tslib/showpic.php
+lrwxrwxrwx   1 httpd    httpd          12 Aug  1 13:54 media -> tslib/media/
+
+
+
+7) zum testen typo3  testsite http://typo3.org/download/packages/ runterladen, entpacken und INSTALL.txt befolgen
+
+
+
+
+
+
+
+
+
+
+
+

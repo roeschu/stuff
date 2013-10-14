@@ -1,0 +1,2 @@
+sudo apt-get install --yes nvidia-kernel-dkms nvidia-glx build-essential nvidia-settings nvidia-xconfig
+sudo nvidia-xconfig

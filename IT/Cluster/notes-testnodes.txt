@@ -1,0 +1,152 @@
+##################################
+#Corosync + Pacemaker + DRBD Zeugs
+##################################
+
+
+
+#Hilfe Links
+http://snozberry.org/blog/2012/05/02/corosync-slash-pacemaker-on-centos-6/
+http://clusterlabs.org/doc/en-US/Pacemaker/1.1-pcs/html-single/Clusters_from_Scratch/index.html#_install_the_cluster_software
+
+
+
+#Minimal Centos 6 Install
+yum update
+disable SELINUX
+chkconfig iptables off
+/etc/hosts
+yum install ntp make gcc
+yum install -y pacemaker corosync
+yum install -y pcs
+passwd hacluster
+
+
+----------
+---Corosync initalkonfig gemäss http://snozberry.org/blog/2012/05/02/corosync-slash-pacemaker-on-centos-6/
+------------
+
+
+...wenns läuft
+
+
+[root@node2 ~]# corosync-cfgtool -s
+Printing ring status.
+Local node ID 939632832
+RING ID 0
+	id	= 192.168.1.56
+	status	= ring 0 active with no faults
+
+
+
+#apapche ressource adden
+pcs resource create Webseite ocf:heartbeat:apache  configfile=/etc/httpd/conf/httpd.conf  statusurl="http://localhost/server-status" op monitor interval=1min
+
+#ressourcen zusammen laufe auf gleichem server
+pcs constraint colocation add WebSite ClusterIP INFINITY
+pcs constraint
+
+#start reihenfolge
+pcs constraint order ClusterIP then WebSite
+pcs constraint
+
+#ressource auf preferierten node
+pcs constraint location Webseite prefers node1=50
+pcs constraint
+
+#placement scores
+crm_simulate -sL
+
+#ressourcen moven auf node1
+pcs constraint location WebSite prefers node1=INFINITY
+pcs constraint all
+#kontrolle cluster zurückgeben
+pcs constraint rm location-Webseite-node1-INFINITY
+pcs constraint
+
+
+
+#DRBD
+#siehe auch http://www.geekpeek.net/drbd-how-to-configure-drbd-on-centos/
+rpm -ivh http://elrepo.org/elrepo-release-6-5.el6.elrepo.noarch.rpm
+yum install -y kmod-drbd83 drbd83-utils
+modprobe drbd
+vgdisplay | grep -e Name - e Free
+lvs
+#aufbeiden nodes
+lvcreate -n drbd-demo -L 1G vg_node1
+lvcreate -n drbd-demo -L 1G vg_node2
+
+#/etc/drbd.d/disk1.res
+global {
+ usage-count yes;
+}
+common {
+ protocol C;
+}
+resource wwwdata {
+ meta-disk internal;
+ device  /dev/drbd1;
+ syncer {
+  verify-alg sha1;
+ }
+ net {
+  allow-two-primaries;
+ }
+ on pcmk-1 {
+  disk   /dev/vg_pcmk1/drbd-demo;
+  address  192.168.122.101:7789;
+ }
+ on pcmk-2 {
+  disk   /dev/vg_pcmk1/drbd-demo;
+  address  192.168.122.102:7789;
+ }
+}
+
+
+#initalize and load drbd
+#node1
+drbdadm create-md wwwdata
+drbdadm up wwwdata
+cat /proc/drbd
+
+#node2
+drbdadm --force create-md wwwdata
+drbdadm up wwwdata
+cat /proc/drbd
+
+#node1
+drbdadm -- --overwrite-data-of-peer primary wwwdata
+cat /proc/drbd
+version: 8.3.15 (api:88/proto:86-97)
+GIT-hash: 0ce4d235fc02b5c53c1c52c53433d11a694eab8c build by phil@Build64R6, 2012-12-20 20:09:51
+
+ 1: cs:SyncSource ro:Primary/Secondary ds:UpToDate/Inconsistent C r-----
+    ns:512384 nr:0 dw:0 dr:513048 al:0 bm:31 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:409148
+	[==========>.........] sync'ed: 56.0% (409148/921532)K
+	finish: 0:05:06 speed: 1,328 (1,280) K/sec
+
+
+sync prozess abwarten...
+
+#node1
+mkfs.ext4 /dev/drbd1
+mount /dev/drbd1 /mnt/
+cat <<-END >/mnt/index.html
+ <html>
+  <body>My Test Site - drbd</body>
+ </html>
+END
+umount /dev/drbd1
+
+#drbd res adden
+pcs cluster cib drbd_cfg
+pcs -f drbd_cfg resource create WebData ocf:linbit:drbd \
+         drbd_resource=wwwdata op monitor interval=60s
+pcs -f drbd_cfg resource master WebDataClone WebData \
+         master-max=1 master-node-max=1 clone-max=2 clone-node-max=1 \
+         notify=true
+pcs -f drbd_cfg resource show
+pcs cluster push cib drbd_cfg
+pcs status
+
+Rest siehe http://clusterlabs.org/doc/en-US/Pacemaker/1.1-pcs/html-single/Clusters_from_Scratch/index.html#_os_installation Kapitel 7 Ende und 8

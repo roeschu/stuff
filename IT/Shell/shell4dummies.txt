@@ -1,0 +1,232 @@
+**********************************************************
+quick'n dirty mysql dumps
+**********************************************************
+#!/bin/bash
+DB_USER="backup"
+DB_PW="pass"
+BACKUP_PATH=/path/to/backup/directory
+
+DBS=`mysql -u$DB_USER -p$DB_PW -rBse "show databases"`
+
+for i in $DBS
+do
+  mysqldump --quote-names --add-drop-table -u$DB_USER -p$DB_PW $i >  $BACKUP_PATH/`date +%Y%m%d`-DATABASE-$i.sql 2>/dev/null
+  if [ $? != '0' ]; then
+     echo "Error Backuping Database!"
+     exit 1
+  fi
+
+done
+
+
+
+
+
+*******************************************************
+backup script auf smb share, achtung bugs
+*******************************************************
+
+#!/bin/bash
+
+_konfig="/etc"
+_data="/daten"
+_datum=$(date +%d%m%Y)
+_psa="/opt"
+_tarcmd="/bin/tar"
+_taropt="-czf"
+_target="/mnt/backupserver/"
+_archivnamekonfig=$_target$(date +%d%m%Y)_KONFIG.tar.gz
+_archivnamedata=$_target$(date +%d%m%Y)_DATA.tar.gz
+_archivnamelogs=$_target$(date +%d%m%Y)_PSA.tar.gz
+_touchcmd="/bin/touch"
+_tempfile="/root/adminscripts/mail.tmp"
+_rcpt="oh@lala.com"
+
+
+
+cd /root/adminscripts
+
+#Mounten des Backupservers
+
+if mount -t smbfs -o username=backupuser,password=popo //192.168.1.11/backup /mnt/backupserver > /dev/null
+then
+        if $_tarcmd $_taropt $_archivnamekonfig $_konfig > /dev/null
+        then
+                echo "ok"
+
+        else
+                _errormessage=
+                _errorspez="y"
+
+        fi
+
+        if $_tarcmd $_taropt $_archivnamedata $_data > /dev/null
+        then
+                echo "ok"
+
+        else
+                _errormessage=
+                _errorspez="y"
+        fi
+
+        if $_tarcmd $_taropt $_archivnamelogs $_psa > /dev/null
+        then
+                echo "ok"
+
+        else
+                _errormessage=
+                _errorspez="y"
+        fi
+
+
+        if [ "$_errorspez" = "y" ]
+        then
+                _subject="Warnung_Backup_error"
+                $_touchcmd $_tempfile
+                echo "Fehler: Bitte Script /root/adminscripts/backup.sh manuell ausfuehren und testen" >> $_tempfile
+        else
+                _subject="Info_Backup_successfull"
+                $_touchcmd $_tempfile
+                echo "Backup erfolgreich abgeschlossen:" >> $_tempfile
+                echo "-> Backup von $_data erfolgreich" >> $_tempfile
+                echo "-> Backup von $_konfig erfolgreich" >> $_tempfile
+                echo "-> Backup von $_psa erfolgreich" >> $_tempfile
+        fi
+
+        mail -s $_subject $_rcpt < $_tempfile
+        sleep 5
+        #Unmounten des Backupservers
+        umount /mnt/backupserver
+        rm -f /root/adminscripts/mail.tmp
+else
+
+        $_touchcmd $_tempfile
+        echo "Konnte Backupserver nicht mounten...bitte kontrollieren" >> $_tempfile
+        _subject="Warnung_Backup_error"
+        mail -s $_subject $_rcpt < $tempfile
+        rm -f /root/adminscripts/mail.tmp
+fi
+
+
+
+*****************************************
+
+
+*******************************************************
+Thresolds checken, fehler bei cpu aulastung
+*******************************************************
+
+
+
+*****************************************
+
+#!/bin/bash
+
+_TEMP="/root/adminscripts/sysinfo/mail.tmp"
+_PARTS="/boot /home /tmp /var  /dev/sda2"
+_PROZENT=
+_PROZENTTHRESOLD=90
+_KBTHRESOLD=2000000
+_CPUIDLETHRESOLD=10
+_HOST=$(hostname)
+_HEADERHD="ACHTUNG: Platzmangel auf $_HOST / Partition "
+_HEADERRAM="ACHTUNG: RAM Knappheit auf $_HOST / Noch "
+_HEADERCPU="ACHUTUNG: CPU Auslastung auf $_HOST / Noch "
+_WARN="X"
+_WARNFLAG="A"
+_SENDTO="rbr@xmedia.ch"
+
+
+
+touch $_TEMP
+
+
+###############################################
+#HD Platz
+###############################################
+checkthresold () {
+        if  [ $_PROZENT -gt $_PROZENTTHRESOLD ]
+        then
+                _SUBJECT="$_HEADERHD $1"
+                df -h >> $_TEMP
+                _WARNFLAG=$_WARN
+        fi
+}
+
+
+for i in `echo $_PARTS`
+do
+
+        _PROZENT=$(df -m | grep $i | cut -c 52-54)
+
+        case $i in
+        /boot)
+                checkthresold $i
+                ;;
+        /home)
+                checkthresold $i
+                ;;
+        /tmp)
+                checkthresold $i
+                ;;
+        /var)
+                checkthresold $i
+                ;;
+        /daten)
+                checkthresold $i
+                ;;
+        /dev/sda2)
+                checkthresold $i
+                ;;
+        esac
+done
+if [ $_WARNFLAG = $_WARN ]
+then
+        mail -s "$_SUBJECT" $_SENDTO < $_TEMP
+        rm -f /root/adminscripts/sysinfo/mail.tmp
+fi
+##################################################
+
+
+
+#################################################
+#RAM Auslastung
+#################################################
+
+_KBFREE=$(cat /proc/meminfo |grep MemFree | cut -c 17-22)
+
+if  [ $_KBFREE -lt $_KBTHRESOLD ]
+then
+
+        _SUBJECT="$_HEADERRAM $_KBFREE KB Ram frei"
+        cat /proc/meminfo >> $_TEMP
+        mail -s "$_SUBJECT" $_SENDTO < $_TEMP
+        rm -f /root/adminscripts/sysinfo/mail.tmp
+
+fi
+
+##################################################
+
+
+
+################################################
+#CPU Auslastung
+###############################################
+
+_CPUIDLE=$(top -b -n1 | grep Cpu | cut -c 39-40)
+
+if [ $_CPUIDLE -lt $_CPUIDLETHRESOLD ]
+then
+
+        _SUBJECT="_$HEADERCPU $_CPUIDLE % verfuegbar"
+        top -b -n1 >> $_TEMP
+        mail -s "$_SUBJECT" $_SENDTO < $_TEMP
+        rm -f /root/adminscripts/sysinfo/mail.tmp
+fi
+
+
+###############################################
+
+                                                                                                                                            
+
+
