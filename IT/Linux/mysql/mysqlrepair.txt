@@ -1,0 +1,164 @@
+5.8.4. Benutzung von mysqlcheck für Tabellenwartung und Wiederherstellung nach Abstürzen
+
+Ab MySQL-Version 3.23.38 können Sie ein neues Prüf- und Reparatur-Werkzeug für MyISAM-Tabellen einsetzen. Der Unterschied zu myisamchk ist, dass mysqlcheck benutzt werden kann, wenn der mysqld-Server läuft, wohingegen myisamchk nur benutzt werden sollte, wenn er nicht läuft. Der Vorteil ist, dass Sie den Server zum Prüfen oder zur Reparatur Ihrer Tabellen nicht mehr herunter fahren müssen.
+
+mysqlcheck benutzt die MySQL-Server-Befehle CHECK, REPAIR, ANALYZE und OPTIMIZE auf eine für den Benutzer bequeme Weise.
+
+Es gibt drei alternative Möglichkeiten, mysqlcheck aufzurufen:
+
+shell> mysqlcheck [OPTIONS] datenbank [tabellen]
+shell> mysqlcheck [OPTIONS] --databases datenbank1 [datenbank2 datenbank3...]
+shell> mysqlcheck [OPTIONS] --all-databases
+
+Daher kann es hinsichtlich der Auswahl von Datenbanken und Tabellen ähnlich wie mysqldump benutzt werden.
+
+mysqlcheck besitzt im Vergleich zu den anderen Clients ein besonderes Feature: Das vorgabemäßige Verhalten, Tabellen mit -c zu prüfen, kann geändert werden, indem die Binärdatei umbenannt wird. Wenn Sie nur ein Werkzeug haben wollen, das vorgabemäßig Tabellen repariert, kopieren Sie eine mysqlcheck mit einem neuen Namen auf Ihre Festplatte, nämlich mysqlrepair, oder legen alternativ einen symbolischen Link auf mysqlrepair und benennen den Link mysqlrepair. Wenn Sie jetzt mysqlrepair aufrufen, repariert es vorgabemäßig Tabellen.
+
+Folgende Namen können Sie benutzen, um das vorgabemäßige Verhalten von mysqlcheck zu verändern:
+
+mysqlrepair:   Vorgabe-Option: -r (reparieren)
+mysqlanalyze:  Vorgabe-Option: -a (analysieren)
+mysqloptimize: Vorgabe-Option: -o (optimieren)
+
+Die verfügbaren Optionen für mysqlcheck sind hier aufgelistet. Bitte prüfen Sie mit mysqlcheck --help, welche davon Ihre Version unterstützt.
+
+    *
+
+      -A, --all-databases
+
+      Prüft alle Datenbanken. Das ist dasselbe wie --databases mit allen Datenbanken ausgewählt.
+    *
+
+      -1, --all-in-1
+
+      Statt für jede Tabelle eine Anfrage auszuführen, alle Anfragen in 1 Anfrage pro Datenbank ausführen. Tabellennamen stehen in einer durch Kommas getrennten Liste.
+    *
+
+      -a, --analyze
+
+      Analysiert die angegebene Tabelle.
+    *
+
+      --auto-repair
+
+      Wenn eine geprüfte Tabelle beschädigt ist, sie automatisch reparieren. Die Reparatur wird durchgeführt, nachdem alle Tabellen geprüft wurden, falls beschädigte gefunden wurden.
+    *
+
+      -#, --debug=...
+
+      Debug-Log-Datei ausgeben. Das ist häufig 'd:t:o,filename'.
+    *
+
+      --character-sets-dir=...
+
+      Verzeichnis, wo Zeichensätze gespeichert sind.
+    *
+
+      -c, --check
+
+      Tabelle auf Fehler prüfen.
+    *
+
+      -C, --check-only-changed
+
+      Nur die Tabellen prüfen, die seit der letzten Prüfung geändert wurden oder die nicht ordnungsgemäß geschlossen wurden.
+    *
+
+      --compress
+
+      Kompression im Client-Server-Protokoll benutzen.
+    *
+
+      -?, --help
+
+      Diese Nachricht ausgeben und beenden.
+    *
+
+      -B, --databases
+
+      Mehrere Datenbanken prüfen. Beachten Sie den Unterschied im Gebrauch: In diesem Fall werden keine Tabellen angegeben. Alle Namensargumente werden als Datenbanknamen erachtet.
+    *
+
+      --default-character-set=...
+
+      Setzt den vorgabemäßigen Zeichensatz.
+    *
+
+      -F, --fast
+
+      Nur Tabellen prüfen, die nicht ordnungsgemäß geschlossen wurden.
+    *
+
+      -f, --force
+
+      Fortfahren, auch wenn ein SQL-Fehler auftritt.
+    *
+
+      -e, --extended
+
+      Wenn Sie diese Option beim Prüfen von Tabellen benutzen, stellt das sicher, dass die Tabelle zu 100% konsistent ist, dauert aber sehr lange. Wenn Sie diese Option beim Reparieren von Tabellen benutzen, wird eine erweiterte Reparatur der Tabelle durchgeführt, was nicht nur sehr lange dauern kann, sondern auch viele 'Müll'-Zeilen produzieren kann!
+    *
+
+      -h, --host=...
+
+      Mit dem angegebenen Host verbinden.
+    *
+
+      -m, --medium-check
+
+      Schneller als extended-check, findet aber nur 99,99% aller Fehler. Sollte in den meisten Fällen genügen.
+    *
+
+      -o, --optimize
+
+      Tabelle optimieren.
+    *
+
+      -p, --password[=...]
+
+      Passwort, das bei der Verbindung zum Server benutzt werden soll. Wenn das Passwort nicht angegeben wird, wird vom Terminal eine Eingabeaufforderung präsentiert.
+    *
+
+      -P, --port=...
+
+      Portnummer, die für Verbindungen zum Server benutzt werden soll.
+    *
+
+      -q, --quick
+
+      Wenn Sie diese Option beim Prüfen von Tabellen benutzen, verhindert das, dass die Zeilen nach falschen Verknüpfungen (Links) durchgesehen werden (gescannt). Das ist die schnellste Prüfmethode. Wenn Sie diese Option beim Reparieren von Tabellen benutzen, wird versucht, nur den Index-Baum zu reparieren. Das ist die schnellste Reparaturmethode.
+    *
+
+      -r, --repair
+
+      Kann fast alles reparieren, ausser eindeutige Schlüssel, die nicht eindeutig sind.
+    *
+
+      -s, --silent
+
+      Nur Fehlermeldungen ausgeben.
+    *
+
+      -S, --socket=...
+
+      Socket-Datei, die für die Verbindung benutzt werden soll.
+    *
+
+      --tables
+
+      Option --databases (-B) überschreiben.
+    *
+
+      -u, --user=#
+
+      Benutzer zum Einloggen, falls nicht der aktuelle Unix-Benutzer.
+    *
+
+      -v, --verbose
+
+      Informationen über die verschiedenen Phasen ausgeben.
+    *
+
+      -V, --version
+
+      Versionsinformationen ausgeben und beenden.

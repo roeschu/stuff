@@ -1,0 +1,103 @@
+ Faq SSH
+
+    * TCPWrappers
+    * Denyhosts
+    * SSH Direktiven
+    * SSH Key Forwarding
+    * Windows Remote Desktop via SSH Tunneling mit Putty SSH Client
+    * Windows Remote Desktop via SSH Tunneling mit Unix SSH Client
+    * Key Forwarding unter Putty 
+
+TCPWrappers
+
+In /etc/hosts.allow ist der VPN Range xx.xx.xx.* permanent eingetragen. D.h ein User dessen IP's von "denyhosts" gesperrt wurde weil er sich mehrmals verschrieben hat, kann im Notfall über das VPN Netz via SSH connecten.
+
+Denyhosts
+
+Es wurde das Paket "denyhosts" installiert. Denyhosts blockt IP's via tcpwrappers (hosts.deny) von welchen eine gewisse Anzahl an falschen Logins abgesetzt wurde. Momentane Werte sind: Geblockt nach 5 Versuchen wenn falscher User angegeben wird und geblockt nach 10 Versuchen wenn richtiger User angegeben wird aber falscher Key/PW. D.h hat man diese Anzahl Versuche überschritten wird die IP in /etc/hosts.deny eingetragen. Damit sind dann weitere Connectversuche sinnlos solange man nicht die entsprechende IP herausgenommen hat (oder man 2 Tage gewartet hat -> Defaulteinstellung). Konfigurationsdatei von denyhosts ist /etc/denyhosts.conf. Geblockte IP's werden nach 2 Tagen automatisch wieder freigeschalten.
+
+ACHTUNG:
+Falls ein an und für sich authentifizierter User sich mehrmals verschreibt und seine IP daher via hosts.deny geblockt wird, kann dieser User die "Hintertüre" über das VPN Netz nehmen (xx.xx.xx.*)
+http://www.howtoforge.com/preventing_ssh_dictionary_attacks_with_denyhosts
+
+SSH Direktiven
+
+Die wichtigsten SSH Direktiven welche auf dem SSH Gateway angepasst wurden sind:
+
+#Port
+Port 60606
+
+#Diverses
+LoginGraceTime 30
+PermitRootLogin? no
+StrictModes? yes
+Password Authentication no
+
+#Users definieren
+AllowUsers roeschu pax scha wittwerch madh lutz tschuetz
+
+SSH Key Forwarding
+
+Der jeweilige Private Key der SSH User ist nicht auf dem SSH Gateway hinterlegt. Die Key Authentifizierung via den SSH Gateway auf das Zielsystem erfolgt über Key Forwarding. Um Key Forwardings zu verwenden muss ein Key Agent eingesetzt werden. Unter Unix SSH ist dies ssh-agent. Der Key Agent lädt die Schlüssel ins Memory und merkt sie sich ergo muss er bei jedem Systemneustart den Schlüssel neu "lernen" (manuell oder über bash startscripts automatisieren). Nachfolgend ein Schritt für Schritt Vorgehen (es wird davon ausgegangen das BASH verwendet wird als Shell, andernfalls können die Variablen variieren..):
+
+#SSH Agent starten
+ssh-agent $SHELL
+
+#Private Key dem Agent bekanntmachen. Der Agent liest hierbei standardmässig die Key Files von /home/username/.ssh/ aus (alternativer Pfad muss angegeben werden)
+
+ssh-add
+
+#Mit -l Parameter kann im Zweifelsfall geprüft werden, welche Keys sich der Agent sich gemerkt hat
+ssh-add -l 1024 16:2c:b9:c7:83:d9:fe:5e:fe:95:d6:1b:5f:14:75:c3 /home/roeschu/.ssh/identity (DSA)
+
+Der Key Agent kennt jetzt den Private Key des User. Beim SSH Connect zum SSH Gateway muss nun noch ein Parameter mitgegeben werden welcher das Agent Forwarding aktiviert. Ohne diesen Parameter wird der Weiterconnect zum End host nicht funktionieren
+
+ssh -A user@xx.xx.xx
+
+Danach befindet man sich auf der Shell des SSH Gateway chamaeleon und kann sich dann normal zum entsprechenden Server weiterverbinden via SSH ohne das man den Key auf dem SSH Gateway oder die Passphrase anzugeben braucht.
+
+Es gibt die Möglichkeit die -A Option per Default zu aktivieren im /etc/ssh/ssh_config file (Sicherheitsaspekt bedenken wenn man von seinem Client zu nicht xxxx Rechnern connectet!!!). Besser ist es die Option nicht per default zu aktivieren, damit man nicht per Default seinen Priv Key in der Weltgeschichte "herumsendet". Falls man mehrere Schlüssel hat welche sich der Key Agent gemerkt hat sollte man zwecks Vereinfachung ebenfalls noch ein paar Dinge im Userhome unter .ssh/config konfigurieren. Siehe weitere Infos dazu:
+
+http://www.securityfocus.com/infocus/1812 (Abschnitte "Turn off agent forwarding globally" , "Too many Agent Keys?" und "Agent Security Concerns") http://www.unixwiz.net/techtips/ssh-agent-forwarding.html
+
+Das Ganze sollte sich auch über ~/.bash_profile und ~/.ssh/config nur für den Chamaeleon-Host einrichten lassen:
+
+~/.bash_profile:
+
+/usr/bin/ssh-add
+
+
+~/.ssh/config
+
+Host ssh-gw.xxxx.ch
+Port 60606
+ForwardAgent yes
+
+
+Windows Remote Desktop via SSH Tunneling mit Putty SSH Client
+
+siehe Anleitung hier http://www.hmi.de/it/netz/SSH-Remotedesktopverbindung.pdf
+
+Windows Remote Desktop via SSH Tunneling mit Unix SSH Client
+
+#Tunnel aufbauen. Der SSH Tunnel wird zu chamaeleon aufgebaut; pisces ist der Windows Server auf welchem der RDP Dienst läuft.
+roeschu@gargamel:~$ ssh -L 3389:pisces.xxxx.ch:3389 chamaeleon.xxxx.ch
+
+#rdesktop Befehl ausführen
+roeschu@gargamel:~$ rdesktop localhost:3389
+
+Damit das Tunneling funktioniert muss der rdesktop Befehl natürlich auf einer anderen Konsole ausgeführt werden, während der Tunnel des ersten Befehl aktiv ist (oder der Tunnel als Background Prozess aufbauen mit &...)
+
+Um ein direktes Shortcut für die RemoteDesktop-Verbindung zu erstellen, empfiehlt sich ein kleines Bash-Script.
+
+#!/bin/bash
+ssh-agent
+ssh-add
+ssh -A -p 60606 -f -N -C -T -L 4000:pisces.xxxx.ch:3389 ssh-gw.xxxx.ch
+rdesktop -g 1280x1024 -k de-ch localhost:4000
+
+Wichtig dabei: Für jedes Shortcut eine andere lokale Portnummer wählen (hier 4000).
+
+Key Forwarding unter Putty
+
+Unter Windows Clients mit Putty kann als Key Agent "Pageant" (http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html) verwendet werden. In den Putty Verbindungsoptionen muss dann unter SSH->Auth der Punkt "Allow agent forwarding" aktiviert werden.

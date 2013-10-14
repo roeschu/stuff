@@ -1,0 +1,109 @@
+
+
+#Banner beim SMTP Dialog
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+
+
+#Ein Dämon, der über neu eingegangene Emails informiert, ist hier nicht erforderlich
+biff = no
+
+# Mmmh?: appending .domain is the MUA's job.
+append_dot_mydomain = no
+
+# Verzögern sich Mailzustellung wird informiert
+#delay_warning_time = 4h
+
+#Hostname
+#myhostname = orion.google.ch
+myhostname = mail.google.ch
+
+#Alias Maps
+alias_maps = hash:/etc/aliases, hash:/var/lib/mailman/data/aliases
+alias_database = hash:/etc/aliases
+
+#file mit hostname drin, zweck?
+myorigin = /etc/mailname
+
+
+#Regelt wohin Mails adressiert werden sollen, damit sie lokale gespeichert werden. 
+mydestination = orion.google.ch, localhost.google.ch, localhost
+
+
+#SMTP Smarthost ausgehend
+relayhost = [mailhub.unibs.ch]
+
+#Server aus diesen Netzen dürfen über diesen SMTP versenden
+mynetworks = 127.0.0.0/8, xx.xx.xx.0/24
+
+#Bestimmen der Domain, für die Postfix die Mails annimmt.
+relay_domains = bscw.google.ch, bscw.google.ch
+
+#Diverses
+mailbox_size_limit = 0
+recipient_delimiter = +
+owner_request_special = no
+inet_interfaces = all
+
+#Mailbox's home der User
+virtual_mailbox_base = /var/vmail
+
+#User unter welchem in den Mailbox homes mail files angelegt werden (hier "vmail")
+virtual_uid_maps = static:5000
+virtual_gid_maps = static:5000
+
+
+#zuordnung der emailadressen auf mailboxen via LDAP, im ldap_virtualusers.cf werden lediglich die 
+#ldap connection infos hinterlegt
+virtual_mailbox_maps = ldap:/etc/postfix/ldap_virtualusers.cf
+
+#Liste der Domains für die Postfix zuständig ist, via Ldap, /etc/postfix/mailboxdomains ist lediglich für listen unter mailman
+virtual_mailbox_domains = ldap:/etc/postfix/ldap_virtualdomains.cf, hash:/etc/postfix/mailboxdomains
+
+#Domain/User Aliasing, die umsetzung von eMail adressen an andere adressen, via ldap
+virtual_alias_maps = ldap:/etc/postfix/ldap_aliasusers.cf, ldap:/etc/postfix/ldap_vacation.cf, ldap:/etc/postfix/ldap_disabled.cf, hash:/var/lib/mailman/data/virtual-mailman, hash:/etc/postfix/gene
+ral-virtualdomains
+
+#Table welche entscheidet was mit mails passiert bei welchen die domain/ der account nicht mehr existiert
+relocated_maps = ldap:/etc/postfix/ldap_relocated.cf
+
+#mail routing table für domains/users
+transport_maps = hash:/etc/postfix/transport
+
+#bla
+receive_override_options = no_address_mappings
+
+#Filter (hier via amavis)
+content_filter = amavis:[127.0.0.1]:10024
+
+
+#simplöe Regex header + body checks
+header_checks = pcre:/etc/postfix/header_checks.cf
+body_checks = pcre:/etc/postfix/body_checks.cf
+
+
+#SMTP authenfizizerung
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+broken_sasl_auth_clients = yes
+
+#TLS Verschlüsselung
+smtpd_use_tls = yes
+#smtpd_tls_auth_only = yes
+smtpd_tls_key_file = /etc/postfix/ssl/serverkey.pem
+smtpd_tls_cert_file = /etc/postfix/ssl/servercrt.pem
+#smtpd_tls_CAfile = /etc/postfix/cacert.pem
+smtpd_tls_loglevel = 1
+smtpd_tls_received_header = yes
+smtpd_tls_session_cache_timeout = 3600s
+tls_random_source = dev:/dev/urandom
+
+
+#bla...
+mailboxfull_destination_recipient_limit = 1
+
+#Zugangs restriktionen zum SMTP 1) SASL Authentifizierte haben access
+#2) mynetworks haben access 3)anderes wird verboten (sei denn postfix ist zuständig für)
+smtpd_recipient_restrictions =
+   permit_sasl_authenticated,
+   permit_mynetworks,
+   reject_unauth_destination
