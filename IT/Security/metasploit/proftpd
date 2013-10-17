@@ -1,6 +1,6 @@
 http://www.offensive-security.com/metasploit-unleashed/Msfconsole
 ############################
-#Metasploit FTP Users Test
+#Metasploit FTP s Users Test
 ###########################
 homebox ~ # msfconsole
 
