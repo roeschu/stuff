@@ -1,0 +1,20 @@
+##########################
+#Metasploit
+###########################
+#Install
+apt-get install build-essential subversion ruby libruby irb rdoc libyaml-ruby libzlib-ruby libopenssl-ruby libdl-ruby libreadline-ruby libiconv-ruby rubygems sqlite3 libsqlite3-ruby libsqlite3-dev
+
+wget http://downloads.metasploit.com/data/releases/metasploit-latest-linux-x64-installer.run
+
+Installer durchklicken...
+
+
+#Armitage
+http://www.fastandeasyhacking.com/download
+
+
+#update
+msfupdate
+
+
+
