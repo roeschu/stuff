@@ -1,0 +1,435 @@
+<?php
+
+
+session_start();
+require_once("xajax.inc.php");
+$xajax = new xajax();
+
+
+
+
+#########Funktions######
+
+
+
+$xajax->registerFunction("checkprozent");
+function checkprozent($arg)
+{
+ 	
+   
+    $message = "Sie m&uuml;ssen ihren Anstellungsgrad angeben!";
+    $objResponse = new xajaxResponse();
+    $objResponse->addAssign("message_checkprozent","innerHTML",$message);
+    return $objResponse;
+
+
+}
+
+
+$xajax->registerFunction("checkgeschlecht");
+function checkgeschlecht($arg)
+{
+
+    $newContent = $arg;
+    $objResponse = new xajaxResponse();
+    $objResponse->addAssign("message_checkgeschlecht","innerHTML",$newContent);
+    return $objResponse;
+
+
+}
+
+$xajax->registerFunction("checkfacher");
+function checkfacher($arg)
+{
+
+    $newContent = "Sie m&uuml;ssen ihren Anstellungsgrad angeben!";
+    $objResponse = new xajaxResponse();
+    $objResponse->addAssign("message_checkfacher","innerHTML",$newContent);
+    return $objResponse;
+
+
+}
+
+
+
+
+
+########################
+
+
+
+$xajax->processRequests();
+
+
+$urlvariable = "question";
+$sitename = "index.php";
+$bgcolor_green = "#33B924";
+$bgcolor_grey = "#E4E4E4";
+
+
+
+
+
+?>
+
+
+<html>
+<head>
+
+    <link rel="stylesheet" type="text/css" href="style.css" />
+
+ 	<script language="JavaScript">
+	schule=new Array();
+
+	schule["Berufsfachschule"]=new Array;
+	schule["Berufsfachschule"][0]="Berufliche Grundausbildung";
+	schule["Berufsfachschule"][1]="BVS / Vorlehre";
+	schule["Berufsfachschule"][2]="Berufsmaturit&auml;tsschule";
+	schule["Berufsfachschule"][3]="Handelssmittelschule";
+	
+
+
+	
+	function zeigen()
+	{
+	gewaehlter_Wert=document.banane.eins.options[document.banane.eins.options.selectedIndex].value;
+
+
+
+	for(i=0;i<schule[gewaehlter_Wert].length;i++)
+	{
+	optionen=new Option(schule[gewaehlter_Wert][i]);
+	document.banane.zwei.options[i]=optionen;
+	document.banane.zwei.options[i].value=schule[gewaehlter_Wert][i];
+	}
+	}
+
+
+	function zeigen2()
+	{
+	alert("Sie haben "+document.banane.zwei.options[document.banane.zwei.options.selectedIndex].value+" gewählt");
+	}
+
+	</script>
+	   
+
+</head>
+<body>
+
+
+
+
+
+<br>
+
+
+
+
+<?php
+
+	
+        if (isset($_GET[$urlvariable]))
+
+        {
+                $register = $_GET[$urlvariable];
+                switch ($register)
+                {
+
+		      case 'entry':
+                    questionentry();
+                   break;
+
+
+                   case 1:
+                    question1();
+                   break;
+
+
+		     case 2:
+			if(isset($_POST['submit_1']))	
+			{
+				$_SESSION['anstellungsprozent']=$_POST['anstellungsprozent'];
+				$_SESSION['geschlecht']=$_POST['geschlecht'];
+				$_SESSION['berufsjahre']=$_POST['berufsjahre'];
+			}
+
+                    question2();
+                   break;
+
+		     
+		     case 3:
+
+			if(isset($_POST['submit_2']))	
+			{
+					$_SESSION['pastkurse']=$_POST['pastkurse'];
+					$_SESSION['pastkurse_anzahl']=$_POST['pastkurse_anzahl'];
+					if ($_SESSION['pastkurse'] == "nein")
+					{
+						question6();					
+					}
+					
+					if ($_SESSION['pastkurse'] == "ja")
+					{
+						question3();
+					}		
+
+			}		
+			else					
+			{		
+			 	question3();
+                  	}
+                 	 break;
+			
+		     case 4:
+			if(isset($_POST['submit_3']))	
+			{
+				$_SESSION['memo_pastkurse']=$_POST['memo_pastkurse'];
+			}
+
+                    	question4();
+                   break;
+	
+		     case 5:
+			if(isset($_POST['submit_4']))	
+			{
+				$_SESSION['memo_verbesserungen']=$_POST['memo_verbesserungen'];
+			}
+
+                    	question5();
+                   break;
+
+		     case 6:
+			if(isset($_POST['submit_5']))	
+			{
+				$_SESSION['grundnichtnutzung']=$_POST['grundnichtnutzung'];
+				$_SESSION['sonstige']=$_POST['sonstige'];
+				$_SESSION['grundnichtnutzung_andere']=$_POST['grundnichtnutzung_andere'];
+				$_SESSION['memo_grundnichtnutzung']=$_POST['memo_grundnichtnutzung'];
+				$_SESSION['memo_grundnichtnutzung_anderes']=$_POST['memo_grundnichtnutzung_anderes'];
+
+			}
+
+                    	question6();
+                   break;
+		    
+		     case 7:
+			if(isset($_POST['submit_6']))	
+			{
+				$_SESSION['unterstuetzung']=$_POST['unterstuetzung'];
+				$_SESSION['memo_unterstuetzung_anderes']=$_POST['memo_unterstuetzung_anderes'];
+
+			}
+
+                    	question7();
+                   break;			
+			
+
+		     case 8:
+			if(isset($_POST['submit_7']))	
+			{
+				$_SESSION['schwerpunkte_future']=$_POST['schwerpunkte_future'];
+				$_SESSION['schwerpunkt_future_zlg']=$_POST['schwerpunkt_future_zlg'];
+				$_SESSION['memo_schwerpunkte_anderes']=$_POST['memo_schwerpunkte_anderes'];
+
+			}
+
+                    	question8();
+                   break;
+
+
+		       case 9:
+			if(isset($_POST['submit_8']))	
+			{
+				$_SESSION['kriterien']=$_POST['kriterien'];
+				$_SESSION['memo_kriterien']=$_POST['memo_kriterien'];
+
+			}
+
+                    	question9();
+                   break;
+
+
+
+
+		       case 10:
+			if(isset($_POST['submit_9']))	
+			{
+				$_SESSION['kursformen']=$_POST['kursformen'];
+			}
+
+                    	question10();
+                   break;
+
+		       
+			case 11:
+			if(isset($_POST['submit_10']))	
+			{
+				$_SESSION['zeiten']=$_POST['zeiten'];
+			}
+
+                    	question11();
+                   break;
+
+		      case 12:
+			if(isset($_POST['submit_11']))	
+			{
+				$_SESSION['memo_allgemein']=$_POST['memo_allgemein'];
+			}
+
+                    	question12();
+                   break;
+
+
+                 }
+
+
+        }
+        else
+        {
+                questionentry();
+
+
+        }
+
+?>
+		
+
+
+</body>
+
+
+</html>
+
+
+
+<?php
+
+
+
+
+###########################################################################################
+
+function questionentry()
+{
+	global $urlvariable, $sitename; 
+	
+	?>
+
+	<h1>Erhebung der Weiterbildungsbed&uuml;rfnisse der Lehrpersonen der Sekundarstufe II </h1>
+    	<form name="banane" id="banane" action="<?php echo $sitename . "?" . $urlvariable . "=2"; ?>"  method="post">
+    	<fieldset>
+    	<legend>Angaben zur Person und zur Anstellung</legend>
+    	<div class="form-row">
+    	<div class="field-label"><label for="schulnametyp">Schultyp</label></div><br>
+	 <div class="field-widget">
+
+		<select size="1"  name="eins" onChange=zeigen();>
+			<option value="Berufsfachschule">Berufsfachschule
+			<option value="Fachmittelschule">Fachmittelschule
+		</select>
+		<br><br>
+		<select size="1"  name="zwei" onChange=zeigen2();>
+			<option value="Berufliche Grundausbildung">Berufliche Grundausbildung
+			<option value="BVS / Vorlehre">BVS / Vorlehre
+			<option value="Berfusmaturit&auml;tsschule">Berufsmaturit&auml;tsschule
+			<option value="Handelsmittelschule">Handelsmittelschule
+		</select>
+		
+ 	</div>
+  	<br><br>
+
+
+	<div class="form-row">
+    	<div class="field-label"><label for="schulname">Schulname</label></div><br>
+	 <div class="field-widget">
+
+	
+	
+
+  	</div>
+
+ 
+
+    		
+
+    	</fieldset>
+   	
+
+  
+    	</form>
+
+
+
+<?php
+
+
+
+
+
+}
+
+###########################################################################################
+
+
+
+###########################################################################################
+function question1()
+{
+
+	global $urlvariable, $sitename; 
+
+
+	if (isset($_SESSION['anstellungsprozent']))	
+	{
+		$checked25 = '';
+		$checked50 = '';
+		$checked75 = '';
+		$checked100 = '';
+		if ($_SESSION['anstellungsprozent'] == "1-25") { $checked25 = "checked"; }
+		if ($_SESSION['anstellungsprozent'] == "26-50") { $checked50 = "checked"; }
+		if ($_SESSION['anstellungsprozent'] == "51-75") { $checked75 = "checked"; }
+		if ($_SESSION['anstellungsprozent'] == "76-100") { $checked100 = "checked"; }
+	}
+
+	if (isset($_SESSION['geschlecht']))	
+	{
+		$checkedM = '';
+		$checkedW = '';
+		if ($_SESSION['geschlecht'] == "frau") { $checkedW = "checked"; }
+		if ($_SESSION['geschlecht'] == "mann") { $checkedM = "checked"; }
+		
+	}
+
+
+	if (isset($_SESSION['berufsjahre']))	
+	{
+		$checked10 = '';
+		$checked20 = '';
+		$checked30 = '';
+		$checked40 = '';
+		if ($_SESSION['berufsjahre'] == "1-10") { $checked10 = "checked"; }
+		if ($_SESSION['berufsjahre'] == "11-20") { $checked20 = "checked"; }
+		if ($_SESSION['berufsjahre'] == "21-30") { $checked30 = "checked"; }
+		if ($_SESSION['berufsjahre'] == "31-40") { $checked40 = "checked"; }
+	}
+	
+
+
+
+	?>
+
+	<h1>Erhebung der Weiterbildungsbed&uuml;rfnisse der Lehrpersonen der Sekundarstufe II </h1>
+    	<form id="test" action="<?php echo $sitename . "?" . $urlvariable . "=2"; ?>"  method="post">
+    	<fieldset>
+    	<legend>Angaben zur Person und zur Anstellung</legend>
+    	<div class="form-row">
+    	<div class="field-label"><label for="anstellungsprozent">Wie hoch ist Ihr Anstellungsgrad in Prozent?</label>:</div><br>
+	 <div class="field-widget">
+		<input type="radio" name="anstellungsprozent" id="anstellungsprozent" value="1-25" <?php echo $checked25; ?> />1 - 25%<br />
+		<input type="radio" name="anstellungsprozent" id="anstellungsprozent" value="26-50" <?php echo $checked50; ?>   />26 - 50%<br />
+		<input type="radio" name="anstellungsprozent" id="anstellungsprozent" value="51-75" <?php echo $checked75; ?>  />51 - 75%<br />
+    		<input type="radio" name="anstellungsprozent" id="anstellungsprozent" value="76-100" <?php echo $checked100; ?>  onblur="xajax_checkprozent(document.getElementById('anstellungsprozent').value)"  />76 - 100%
+	<br><br>
+	<div class="checkmessage" id="message_checkprozent"></div>
+  	</div>
+	
