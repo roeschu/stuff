@@ -1,0 +1,59 @@
+#########################################
+#mysql db auslesen (DBI),mx lookup
+#########################################
+
+use strict;
+use DBI;
+use Net::Nslookup;
+use Net::SMTP::Multipart;
+
+
+
+use DBI;
+my $datenbank = 'data';
+my $datenbankhost = 'localhost';
+my $datenbankuser = 'roeschu';
+my $mydns = 'ns.meindns.com';
+my $datenbankpw = 'friss99kiwisdusoumore';
+my $resolver = 'ns1.opendns.ch';
+my @addrs = nslookup $resolver;
+my $host;
+my $row;
+
+my $dbh = DBI->connect("DBI:mysql:$datenbank:$datenbankhost","$datenbankuser","$datenbankpw")
+or print "Fehler bei der Datenbankverbindung aufgetreten.";
+
+
+my $sth = $dbh->prepare("SELECT DomainName FROM domains");
+$sth->execute or die DBI->errstr;
+
+
+
+  while(my (@inhalt) = $sth->fetchrow_array()) 
+   { 
+        my @mx = nslookup(qtype => "MX", domain => @inhalt[0]);
+	sleep(1);
+
+	print @mx[0] . "  " . @inhalt[0] . "\n";
+
+		if (@mx[0] ne $mydns)
+		{
+
+			my $smtp = Net::SMTP::Multipart->new("localhost");
+  			$smtp->Header(To   => "support\@soumore.com",
+                	Subj => "Mailhost: Inaktive Maildomains prüfen: " . @inhalt[0],
+                	From => "bla@ls.ch");
+  			$smtp->Text("Die Maildomain " . @inhalt[0] . " auf mailhost (postfix) hat einen MX Record welcher nicht mehr auf unsere Server zeigt. Bitte kontrollieren und die Maildomain ggf. 			loeschen");
+ 			$smtp->End();
+
+
+		}
+	
+	 
+   } 
+
+
+$sth->finish;
+$dbh->disconnect;
+
+

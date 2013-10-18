@@ -1,0 +1,10 @@
+#PW setzen
+mysqladmin -u root password 'mynewpassword'
+mysql -u root -p
+
+#Dumpen
+mysqldump -uDBUSER -p --add-drop-table dbname > typo_dbsave_date.sql
+--add-drop-table : legt die tabellen beim einspielen des dumps neu an (loescht vorhandene)
+
+#Einspielen
+mysql -uDBUSER -p DBNAME < typo_dbsave_data.sql

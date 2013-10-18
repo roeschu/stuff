@@ -1,0 +1,100 @@
+############################
+#Transparentes Briding
+############################
+
+
+- Task: Vor einen produktiven Server (Web,Mail) soll eine transparente Bridge (ohne IP adresse, 2 NIc's in + out) geschaltet werden
+- Gefährlicher Traffic in + out auf der Bridge filtern
+- Aubauend auf diese Bridge könnten weitere Appl, Monitor installiert werden (squid,virus)
+- damit das Briding funktioniert muss im Kernel "Ethernet Briding 801.2d Support" aktiviert sein
+- seit 2.6.x ist dies bei den Standardkernels normalerweise aktiviert
+
+1)
+Unter Debian und Ubuntu werden die Briding Utilitys installiert
+
+
+brueckevonarnheim.host.com:#aptitude install bridge-utils
+
+
+2)
+Ueber folgendes Startskript wird die Bridge Umgebung beim Start des Rechners initialisiert. Damit wird ein Bridgeinterface
+(ähnlich einem Ethernet Device) erstellt, dem eth0 und eth1 zugehören, danach wird noch sichergestellt das eth0 und eth1
+ohne IP aktiviert sind (soll ja unsichtbar/transparent sein..). Wurde das Skript ausgeführt ist br0 als Device sichtbar wenn
+ifconfig -a ausgeführt wird. brctl -h gibt mehr Ausgkunft über die Briding Utilities.
+
+
+
+#!/bin/bash
+brctl addbr br0
+brctl addif br0 eth0
+brctl addif br0 eth1
+ifconfig eth0 down
+ifconfig eth1 down
+ifconfig eth0 0.0.0.0 up
+ifconfig eth1 0.0.0.0 up
+ifconfig br0 up
+
+
+
+
+3)
+Ueber folgendes Skript wird die iptables Firewall konfiguriert beim Start. In diesem Zusammenhang ist $PUBLICSERVER ein Rechner
+welcher hinter der Transparenten Bridge steht. Auf $PUBLICSERVER werden öffentliche Services angeboten
+
+
+#!/bin/bash
+#Irgendwelche Servervariablen
+SMTPSERVER="server.home.ch"
+PUBLICSERVER="serverauch.home.ch"
+
+
+#DROP alles
+iptables -P INPUT DROP 
+iptables -P OUTPUT DROP 
+iptables -P FORWARD DROP 
+
+
+#Localhost alles zulassen (u.U nicht notwendig...ungeprüft)
+iptables -A INPUT -p all -i lo -j ACCEPT 
+iptables -A OUTPUT -p all -o lo -j ACCEPT
+
+
+#Regeln für Stateful Inspection, Ping zulassen
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -p icmp -j ACCEPT
+
+
+
+#SMTP Traffic zu $SMTP ist erlaubt
+iptables  -A FORWARD -p tcp -d $SMTP --dport 25 -j ACCEPT
+
+
+#DNS Traffic mit Source $PUBLICSERVER ist erlaubt
+iptables -A FORWARD -p tcp -s $PUBLICSERVER --dport 53 -j ACCEPT
+iptables -A FORWARD -p udp -s $PUBLICSERVER --dport 53 -j ACCEPT
+
+
+#POP,WWW,IMAP und 6666 zum $PUBLICSERVER ist erlaubt
+iptables -A FORWARD -p tcp  -d $PUBLICSERVER --dport 110 -j ACCEPT
+iptables -A FORWARD -p tcp -d $PUBLICSERVER --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -d $PUBLICSERVER --dport 143 -j ACCEPT
+iptables -A FORWARD -p tcp -d $PUBLICSERVER --dport 6666 -j ACCEPT
+
+
+#LDAP von besagter IP zu $PUBLICSERVER ist erlaubt
+iptables -A FORWARD -p tcp -s 192.23.22.105 -d $PUBLICSERVER --dport 389 -j ACCEPT
+
+
+
+**************
+ACHTUNG: Im Zusammenhang mit briding Devices sollte u.U physdev in Iptables verwendet werden?????, z.B
+
+UNGETESTET
+#iptables -A INPUT -p tcp --dport 110 -m physdev --physdev-in eth0 -j ACCEPT
+#iptables -A INPUT -p tcp --dport 80 -m physdev --physdev-in eth0 -j ACCEPT
+#iptables -A INPUT -p tcp --dport 143 --m physdev --physdev-in eth0 -j ACCEPT
+#iptables -A INPUT -p tcp --dport 25 --m physdev --physdev-in eth0 -j ACCEPT
+*************
+
+

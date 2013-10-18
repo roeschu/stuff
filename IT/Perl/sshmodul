@@ -1,0 +1,75 @@
+#########################################
+#- pc über ssh runterfahren
+#- braucht NET::SSH::PERL modul#
+#########################################
+my $ssh = Net::SSH::Perl->new($host);
+$ssh->login($user, $pass);
+my ($stdout, $stderr, $exit) = $ssh->cmd($cmd);
+
+if ($exit == 0)
+{
+	open(LOGHANDLE,">> $actionlogpath$actionlogname");
+	print LOGHANDLE $datum . " " . $tim . "   " . "$server wurde heruntergefahren\n";
+	close (LOGHANDLE);		
+}
+else
+{
+	open(LOGHANDLE,">> $actionlogpath$actionlogname");
+	print LOGHANDLE $datum . " " . $tim . "   " . "Probleme beim herunterfahren von $server\n";
+	close (LOGHANDLE);
+	
+}
+#########################################
+
+
+#########################################
+#- ssh + scp benutzung
+#########################################
+
+#!/usr/bin/perl -w
+#use strict;
+use Net::SCP;
+use Net::SSH qw(sshopen2);
+
+
+my $folder = "/scptest";
+my $user = "rocky";
+my $host = "192.168.3.102";
+my $cmd = "ls " . $folder . " >> /scptest/Zones";
+
+
+sshopen2("$user\@$host", *READER, *WRITER, $cmd) || die "ssh: $!";
+
+while (<READER>) 
+{
+
+#	opendir (VERZ,$folder);
+#	@verzinhalt = readdir VERZ;
+	#closedir (VERZ);
+	#print @verzinhalt;
+
+	
+
+}
+
+close (READER);
+close (WRITER);
+#########################################
+
+
+
+#########################################
+#- ssh + scp benutzung
+#########################################
+#!/usr/bin/perl -w
+use Net::SCP;
+#use Net::SSH qw(sshopen2);
+
+$scp = Net::SCP->new( "192.168.3.102", "rocky");
+
+#$scp->scp("/home/rocky", "/scptest") or die $scp->{errstr};
+
+
+
+$scp->get("/scptest") or die $scp->{errstr};
+#########################################

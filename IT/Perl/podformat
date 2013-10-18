@@ -1,0 +1,80 @@
+#########################################
+#- Beispiel für POD Formatierung
+#########################################
+=pod
+
+=head1 NAME
+
+nsync.pl
+
+
+=head1 Beschreibung
+
+
+Dieses Perlscript gleicht den internen DNS Server mit dem Secondary DNS Server
+ab. Das Script holt die Zonen des Secondary DNS aus einem temporaeren Verzeichnis.
+Die Zonen in diesem temp Verzeichnis werden vom Secondary DNS via "rsync" abgeglichen.
+
+Mit "delete_zones()" prueft das Script ob es auf dem internen Server Zonen gibt welche auf 
+dem Secondary nicht existieren. In diesem Fall wird ein Mail an die Kontaktadresse geschickt
+mit den Infos der Zone. Das Script löscht aus Sicherheitsgruenden keine Zonen!
+
+Mit "do_map()" prueft das Script fuer jede Zonendatei ob eine externe IP Adresse in eine
+interne umgeschrieben werden muss. Dies geschieht anhand einer Mapping Tabelle welche in einem
+csv File hinterlegt ist.
+
+Eine genaue Dokumentation des Scripts ist in den internen Unterlagen unter
+laufwerk z: einsehbar.
+
+=over
+
+
+=back
+
+
+=head1 SCRIPTAUFRUF
+
+nsync.pl [-h help]
+
+
+=head1 ERSTELLT
+
+2004-10-10 haarscharf@da.ru
+
+
+=head1 VERSION
+
+
+=over
+
+=item 2001-10-12 haarscharf@da.ru, do_map() Funktion gemacht
+
+=item 2001-10-15 haarscharf@da.ru, delete_zone() Funktion gemacht
+
+=back
+
+
+=head1
+
+=head1 FREMDMODULE
+
+
+=over
+
+=item Getopt::Std;
+
+=item Net::DNS;
+
+
+=back
+
+=head1
+
+=cut
+
+#########################################
+
+
+
+
+

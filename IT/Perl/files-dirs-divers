@@ -1,0 +1,274 @@
+#########################################
+#- files welche älter als 1 stunde sind
+#########################################
+	if (-e $folder . $element)
+	{
+		$now = time;
+		@fileinfo = stat $folder . $element;
+
+		if ($fileinfo[9] + 3600 < $now )
+.....
+		
+#########################################
+
+
+
+#########################################
+#- liest dirinhalt aus 
+#- sortiert array mit jüngster datei zuoberst
+#- stat, sort
+#########################################
+#!/usr/bin/perl -w
+
+#Verzeichnis welches ausgelesen werden soll
+my $folder = '/perlteschts/';
+
+
+# Verzeichnis oeffnen
+opendir (VERZEICHNISHANDLE,$folder);
+
+# Ins Array werden alle Dateien im Verzeichnis eingelesen aussert "." und ".."
+if (@verzeichnisinhalt = grep { ! /^\.\.?/ } readdir VERZEICHNISHANDLE)
+{
+	
+	# sort sortiert das Array nach Aenderungsdatum (nicht Erstellungsdatum...) der Dateien,
+	# somit ist der erste Wert im Array die Datei welche zuletzt geändert wurde, wenn du
+	# die Datei mit dem ältesten Aenderungsdatum willst einfach $b und $a vertauschen...
+	@verzeichnisinhalt = sort { (stat "$folder/$b")[9] <=> (stat "$folder/$a")[9] } @verzeichnisinhalt;
+	my $juengstes = $verzeichnisinhalt[0];
+	print $juengstes . "\n";
+	
+
+	closedir(VERZEICHNISHANDLE);
+	
+}
+else
+{
+
+	exit;
+
+}
+#########################################
+
+
+
+
+
+
+
+
+
+#########################################
+#- Macht irgendwas
+#- unlink, rename, open, suchen ersetzen
+#########################################
+sub do_map
+{
+
+	
+	opendir(SYNCHANDLE,$rsync_verzeichnis);
+	if (@syncurls=grep { ! /^\.\.?/ } readdir SYNCHANDLE)
+	{
+		
+		open(DAT, "<$mapfile") or die "kann csv file nicht oeffnen";
+		@csvinhalt = <DAT>;
+		close(DAT);
+		chomp(@csvinhalt);
+		
+			
+			foreach (@csvinhalt)
+			{
+			
+				($externIP, $internIP,) = (split(/;/, $_)) [0,1];
+				foreach $syncurl (@syncurls)
+				{
+						
+				$zonendatei = $rsync_verzeichnis . $syncurl;
+				$tmp_file = $tmp_verzeichnis . $syncurl . ".tmp";
+				rename $zonendatei, $tmp_file;	
+				open ZONENDATEI, "> $zonendatei";
+				$ARGV[0] = "$tmp_file"; 
+				while(<>) 
+				{
+					 s/$externIP/$internIP/g;
+
+					print ZONENDATEI;
+	 
+				}
+			        
+				  unlink($tmp_file);
+ 
+				} #end foreach syncurls	
+		 	} # end foreach csvinhalt
+ 		
+		
+	} #end if
+	else
+	{
+		return 1;
+	} #end else
+		
+} #end sub
+#########################################
+
+
+
+#########################################
+#- Erstellt datei wenn sie nicht existiert
+#########################################
+
+if (! (-e $converteddir . "/" . "INCOMING." . $monjah . ".csv"))
+			{
+			my @argvs = ($touch_command,$converteddir . "/" . "INCOMING." . $monjah . ".csv");
+		 	system(@argvs);
+						 
+			}
+#########################################
+
+#########################################
+#- Anwendung von Split (trenner "\")
+#- ergibt:
+#  $dateun[0] -> 10
+#  $dateun[1] -> 09
+#  $dateun[2] -> 2003
+#  @dateun -> 3
+#########################################
+$datum = "10/09/2009";
+@dateun = split /\//,$datum;
+#########################################
+
+
+#########################################
+#- File einlesen mit INPUT_RECORD_SEPARATOR "$/" Datensatztrenner
+#- In Datensatz suchen (OUTGOING CALL, INCOMING CALL)
+#- funktionen ausführen
+##########################################
+#Datensatztrenner beim Einlesen
+$/ = "\n\n--------";
+
+
+open(DAT, "<$convfile") or die "Konnte File " . $file2to . " nicht oeffnen!";
+
+while (<DAT>)
+{
+
+
+	#Fang abgehenden Anruf
+	if (/OUTGOING CALL/)
+	{
+
+		getdate();
+		getphone();
+		getmoney();
+		getdurationOUT();
+		writecsvOUT();
+
+	}
+	elsif (/INCOMING CALL/)
+	{
+		
+
+		getdate();
+		getphone();
+		getdurationIN();
+		writecsvIN();
+		
+
+	}
+}
+#########################################
+
+
+
+
+
+#########################################
+#- In file schreiben (anschliessen)
+##########################################
+open(INDEXHANDLE,">> $indexfile");
+print INDEXHANDLE "Hoschi blabla" .  "\n";
+close (INDEXHANDLE);
+
+#########################################
+
+
+#########################################
+#- Verzeichnis öffnen
+#- Dateinamen in Array lesen, ohne Ankerpunkte
+#- nur bestimmt Dateinamen in Array ($searchstring)
+#- file erstellen bei bedarf ($touch_command)
+#- csv dateiinhalt in array lesen (@indexcontents)
+#- 2 arrays vergleichen und hash returnieren (%diff)
+#########################################
+	if(opendir(DIRHANDLE,$downloaddir)) 
+	{
+		my @files = ();
+		my @newfiles = ();
+		my $searchstring = "Record.";
+		my @indexcontents = ();
+		my $indexcontent = "";
+			
+		#Lies alle Dateinamen in ein Array (aussert Ankerpunkte)
+		if (@files=grep { ! /^\.\.?/ } readdir DIRHANDLE)
+		{
+			@newfiles = grep /$searchstring/, @files;
+			
+						
+				 if (! (-e $indexfile))
+				 {
+					my @argvs = ($touch_command,$indexfile);
+					system(@argvs);
+				 }					
+				
+
+				 	if(open(DAT, "<$indexfile"))
+					{
+						#schreibe Dateiinhalt von CSV Datei in Array
+						@indexcontents = <DAT>;
+						close(DAT);
+						chomp(@indexcontents);
+					}
+					
+
+					@diff{ @newfiles } = ();
+					s/indexcontents/newfiles/ for @indexcontents;
+					delete @diff { @indexcontents };
+
+					
+					
+					foreach  (keys %diff)
+					{
+						print $_ . "\n";
+						
+					}
+				
+
+						return %diff;							
+	        									
+		}
+	}
+}
+
+#########################################
+
+
+
+
+#########################################
+#Directory erstellen
+#########################################
+@args = ("$mkdir", "-p", "$downloaddir");
+if (system("@args") == 0)
+{
+	#nothing here...
+}
+else
+{
+print "ERROR: Konnte Logdirectory nicht erstellen\n";
+exit 1;
+}
+#########################################
+
+
+
+

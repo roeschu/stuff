@@ -1,0 +1,28 @@
+######################################
+
+PHP Admin Values z.b Vhost Kontext
+
+######################################
+
+php_admin_flag engine on
+php_admin_flag safe_mode on
+php_admin_flag register_globals off
+php_admin_value magic_quotes_runtime off
+php_admin_value magic_quotes_gpc off
+php_admin_value safe_mode_exec_dir = /var/www/domain.com/safe_exec
+php_admin_value open_basedir /var/www/domain.com:/usr/src/typo3
+php_admin_value upload_tmp_dir /var/www/domain.com/temp
+php_admin_value session.save_path /var/www/domain.com/temp
+
+
+Weitere mögliche/nützliche PHP Parameter
+
+allow_url_fopen on / off
+disable_functions system,shell_exec,passthru,escapeshellcmd,exec
+display_errors off
+error_log on
+log_errors /var/log/phperrors
+expose_php off / on
+upload_max_filesize 32M
+memory_limit 16m
+

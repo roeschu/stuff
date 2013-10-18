@@ -1,0 +1,27 @@
+
+#########################################
+#- Mail verschicken
+#########################################
+
+		if (! (-e $rsync_verzeichnis . $url))
+		{					
+			
+			 
+			 
+			open (MAIL, "|$mailer -t ") || die "Email error";
+			print MAIL "From: Interner DNS  <we-take-care\@goolemail.com>\n";
+			print MAIL "To: $account\n";
+			print MAIL "Subject: $url Zone auf internem DNS $hostname\n\n";
+			print MAIL "Hallo \n\nDie $url Zonendatei existiert auf dem internen DNS, jedoch nicht auf";
+			print MAIL " dem Secondary DNS. Die Zone sollte wahrscheinlich gelöscht werden.\n";
+			print MAIL "\nPfad: $forwardzonen_verzeichnis$url\n\nMFG Dein DNS BOT\n\n\n";
+			close (MAIL);
+		
+		}
+		else
+		{
+			print "no";
+		
+		}
+#########################################
+

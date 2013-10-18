@@ -1,0 +1,15 @@
+#########################################
+#- Zeitvariablen und Funktionen
+#########################################
+chomp($dayofbackup = (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday)[(localtime)[6]]);
+my ($hh,$mm,$ss,$tag,$mo,$jahr)=(localtime(time)) [2,1,0,3,4,5];
+my $zeit=time;
+my $tim = sprintf('%02d:%02d:%02d',$hh,$mm,$ss);
+my $jahrr=($jahr-100)+2000;
+my $tagg = sprintf('%02d',$tag);
+my $mor=($mo+1);
+my $morr=sprintf('%02d',$mor);
+my $datum= $jahrr.$morr.$tagg;
+#########################################
+
+---------------------------------------------------------------------------------------------------------

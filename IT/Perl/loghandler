@@ -1,0 +1,51 @@
+---------------------------------------------------------------------------------------------------------
+
+#########################################
+#- Log schreiben oder mailen
+#- loglevel
+#########################################
+sub writeLog ($$)
+{
+	
+#Es wird die Subroutine createlogfile() aufgerufen	
+createlogfile();
+
+#Die mitgegebenen Parameter (writeLog(parameter1,parameter2)
+#werden aufgefangen
+my $logmessage = shift;
+my $loglevel = shift;
+
+#Je nach Loglevel wird die Loginfo gesetzt (erscheint in der
+#Logdatei).
+if ($loglevel == 10) { $loginfo = "ERROR"; }
+if ($loglevel == 20) { $loginfo = "WARNUNG";	     }
+if ($loglevel == 30) { $loginfo = "INFORMATION";    }
+
+#Es wird ins Logfile geschrieben
+open(LOGHANDLE,">> $logpath$logname");
+print LOGHANDLE $datum . " " . $tim . "  " . $loginfo . ": " . $logmessage . "\n";
+close (LOGHANDLE);	
+
+#Falls der Loglevel 10 ist (ERROR) wird ein E-mail an den Admin
+#versendet ($adminaccount)
+	if ($loglevel eq 10)
+	{
+		open (MAIL, "|$mailer -t ") || die "Email error";
+		print MAIL "From: Nsync Logwatch  <youareaidiot\@gmx.ch>\n";
+		print MAIL "To: $adminmail\n";
+		print MAIL "Subject: ERROR beim Scriptlauf nsync.p\n\n";
+		print MAIL "Hallo \n\nERRORSTRING:\n********************\n";
+		print MAIL "$logmessage\n********************\n\n";
+		print MAIL "Weitere Infos findet man eventuell im Logfile: $logpath . $logname\n\n";
+		print MAIL "Freundliche Gruesse\n\nnsync.pl logwatch";
+		close (MAIL);
+	
+	}#END IF
+	
+
+}#END SUB
+#########################################
+
+
+
+---------------------------------------------------------------------------------------------------------

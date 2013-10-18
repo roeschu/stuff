@@ -1,0 +1,29 @@
+
+#########################################
+#- FTP Download, benötigt cpan modul NET::FTP
+#- Nur ftp files holen welche $searchstring entsprechen
+#########################################
+
+	$ftp = Net::FTP->new("192.168.1.1", Debug => 0)
+	or die "geht nicht: $@";
+
+	$ftp->login("user", "pass")
+	or die "geht nicht login: $@";
+
+	@filesAndSubfolders = $ftp->ls("/");
+
+	foreach $filesAndSubfolder (@filesAndSubfolders)
+	{
+
+	@fileinfos = ($filesAndSubfolder,$ftp->mdtm($filesAndSubfolder),$ftp->size($filesAndSubfolder));
+	#print $fileinfos[0] . "\n";
+
+     		if (grep {/$searchstring/} $fileinfos[0]  )
+        	{
+			
+                 	$ftp->get($fileinfos[0],$downloaddir . "/" . $fileinfos[0])
+                 	or die "$@";
+        
+		}
+#########################################
+

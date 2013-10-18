@@ -1,0 +1,42 @@
+#########################################
+#- Variablenübergabe bei routine
+##########################################
+sub raw2csv($$$)
+{
+my $var1 = shift;
+my $var2 = shift;
+my $var3 = shift;
+}
+#########################################
+
+
+#########################################
+#- Export von vars und funktionen aus modul
+#########################################
+require Exporter;
+use vars qw(@ISA @EXPORT);
+use Exporter;
+@ISA = qw(Exporter);
+@EXPORT = qw(writeLog creatlogfile @args $mkdir $logpath $logname $zeit $tim $jahrr $tagg $mor $morr $datum $loginfo $logmessages $loglevel);
+
+#########################################
+
+
+
+#########################################
+#- Scriptparameter auswerten
+#########################################
+use Getopt::Std;
+getopts('h');
+# Check if help was choosen. If yes, display help and exit
+sub checkCommandLineArguments 
+{
+	if ($opt_h)
+ 	{
+ 	print $help;
+ 	exit 1;
+ 	}
+ 	
+}
+# End sub
+#########################################

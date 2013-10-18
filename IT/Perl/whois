@@ -1,0 +1,131 @@
+
+
+#########################################
+#- whois query mit grepping nach suchtext
+#########################################
+#!/usr/local/bin/perl -w
+
+open(DAT, "<master.csv") or die "bla";
+
+@csvinhalt = <DAT>;
+close(DAT);
+chomp(@csvinhalt);
+
+
+
+
+foreach  (@csvinhalt)
+{
+	$url = (split(/,/, $_)) [0];
+	my $whois = "whois";
+	my $grep = "grep -i -E '(194.222.22.22|ns1.broweider.net)'";
+	my $pipe = ">> /daten/domains/" . $url;
+	
+ 
+	my @args = ($whois, $url, $pip, $pipe);
+
+	
+
+	system("@args");
+	my $purl = "/daten/domains/" . $url;
+        my @args1 = ($grep, $purl);
+	
+	$debug = system("@args1");
+	if (system("@args1")=="0")
+	{
+		open(GOOD,">>/daten/GOODDOMAINS.txt");	
+		print GOOD $url . "\n";
+		close(GOOD);
+	}
+	else
+	{
+		open(BAD,">>/daten/BADDOMAINS.txt");
+		print BAD $url . "\n";
+		close(BAD);
+	}
+ 	
+	print $url . "\n";
+		
+	sleep 30;
+
+
+}
+
+
+close(DAT);
+
+#########################################
+
+
+#########################################
+#- dns query
+#########################################
+#!/usr/bin/perl -w
+use Net::DNS;
+
+my $resolv = Net::DNS::Resolver->new;
+my @mx = mx($resolv, "garage-schlauriag.ch");
+
+
+if (@mx) {
+	foreach $rr (@mx)
+	{
+		print $rr->preference, " ", $rr->exchange, "\n";
+
+	}
+
+
+}
+#########################################
+
+
+#########################################
+#- dns mx record query + diverses
+#- benötigt Net::DNS; DNS::ZoneParse;
+#########################################
+sub do_query
+{
+
+	opendir(STATICHANDLE,$staticzonen_verzeichnis);
+	if (@staticurls=grep { ! /^\.\.?/ } readdir STATICHANDLE)
+	{	
+	
+		foreach $staticurl (@staticurls)
+		{
+		@jaba = (split(/\./,$staticurl));
+		
+		
+		
+	 	 	
+		$domein = $jaba[1] . "." . $jaba[2];
+		my $resolv = Net::DNS::Resolver->new;
+		my @mx = mx($resolv,$domein );
+	 	print $domein . "\n";			
+		
+			if (@mx) 
+			{
+			
+				print $mx[0]->exchange, "\n";
+				my $mailhost = $mx[0]->exchange;			
+
+				my $zonefile = DNS::ZoneParse->new(\$staticzonen_verzeichnis . $staticurl);
+				my $mailrecord = $zonefile->mx;
+				$mailrecord->[0] = { host => $mailhost, priority => 10, name => '@' };
+				open NEWZONE, ">$staticzonen_verzeichnis . $staticurl";
+				print NEWZONE $zonefile->output();
+				close NEWZONE; 	
+			}
+			
+		} #end foreach
+	} #end if
+	else
+	{
+		
+		print "file not open";
+			
+	}
+	
+	
+ }
+#########################################
+

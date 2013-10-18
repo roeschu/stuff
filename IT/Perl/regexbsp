@@ -1,0 +1,111 @@
+
+#########################################
+#- Beispiele für Regex suche in datensatz
+#\A -> Beginne der Zeile
+#\s+ mehrere Whitespaces (leerschläge)
+#\d eine zahl (0-9)
+#\s* genau ein whitespaces (leerschlag)
+#\d+ mehrere zahlen (0-9=
+###########################################
+
+sub getdate 
+{		
+#Datum, Uhrzeit und lokale Nummer speichern
+		if (/\A\s+(\d\d\/\d\d\/\d\d)\s+(\d\d:\d\d:\d\d)\s+LINE\s*=\s*\d+\s+STN\s*=\s*(\d+)/)
+		{
+			$datum = $1;
+			$zeit = $2;
+			$intphone = $3;
+			return $datum, $zeit, $intphone;
+		}
+		else
+		{
+		#warn "OUT: Kein Datum, Uhrzeit oder interne Nummer in Datensatz:\n$_\n";
+		}
+}
+
+
+sub getphone
+{
+
+		#Externe Nummer speichern
+		if (/\n\s+CALLING NUMBER\s+(\d+)/)
+		{
+			$extphone = $1;
+			return $extphone;
+		}
+		else
+		{
+		#warn "OUT: Keine externe Nummer in Datensatz:\n$_\n";
+		}
+
+
+}
+
+
+sub getmoney
+{
+
+		#Kosten speichern
+		if (/\n\s+CALL CHARGE\s*=\s*(\d*\.\d+\s*FR.)/)
+		{
+			$kosten = $1;
+			return $kosten;
+		}
+		else
+		{
+		#warn "OUT: Keine Kosten in Datensatz:\n$_\n";
+		}
+
+
+}
+
+
+sub getdurationOUT
+{
+
+		#Anrufdauer speichern
+		if (/\n(\d\d:\d\d:\d\d)\s+CALL RELEASED/)
+		{
+			$dauer = $1;
+			return $dauer;
+		}
+		else
+		{
+		#warn "OUT: Keine Anrufdauer in Datensatz:\n$_\n";
+		}
+
+
+}
+
+
+
+sub getdurationIN
+{
+
+		#Anrufdauer merken
+		if (/\n(\d\d:\d\d:\d\d)\s+(CALL RELEASED|TRANSFERRED)/)
+		{
+			$dauer = $1;
+			$kosten = "0";
+			return $dauer, $kosten;
+		}
+		else
+		{
+		#warn "IN: Keine Anrufdauer in Datensatz:\n$_\n";
+
+		}
+
+
+
+}
+
+
+##########################################
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------

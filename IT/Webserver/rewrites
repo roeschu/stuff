@@ -1,0 +1,14 @@
+#umleitung anhand von Protokollart mit rewrite
+RewriteCond %{SERVER_PROTOCOL} HTTP
+RewriteRule ^/(.*)$ https://www.domain.com/$1 [R,L]
+
+#schaltet Rewrite Eninge ein
+RewriteEngine On
+
+#Verhindert Requests mit TRACE und TRACK
+RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
+RewriteRule .* - [F]
+
+#Besipiel für einfache RewriteRule
+RewriteRule ^/images/cartoon$ http://www.waltdisney.com/cartoon [L,R]
+
