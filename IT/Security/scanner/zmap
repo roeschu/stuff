@@ -1,6 +1,6 @@
 https://zmap.io
 
-186.195.224.0 
+
 
 #Req. Debian
 apt-get install libgmp3-dev libpcap-dev gengetopt
