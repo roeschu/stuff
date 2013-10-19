@@ -4,17 +4,7 @@ http://zer0byte.com/2013/09/16/port-scan-entire-planet-masscan-ineternet-securit
 
 
 
-##########################
-#Nmap
-###########################
-#Intense Scan, mit Ping
-nmap -T4 -A -v www.domain.ch
-#Intense Scan ohne Ping
-nmap -T4 -A -v -Pn www.domain.ch
-#Intense scan, all TCP Ports
-nmap -p 1-65535 -T4 -A -v www.domain.ch
-#Intense scann mit UDP
-nmap -sS -sU -T4 -A -v www.domain.ch
+
 
 
 
