@@ -12,9 +12,16 @@ Installer durchklicken...
 #Armitage
 http://www.fastandeasyhacking.com/download
 
+#console starten
+msfconsole
 
 #update
 msfupdate
+
+#db status
+msf > db_status
+[*] postgresql connected to msf3
+
 
 
 

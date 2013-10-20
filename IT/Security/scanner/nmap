@@ -9,6 +9,8 @@ nmap -T4 -A -v -Pn www.domain.ch
 nmap -p 1-65535 -T4 -A -v www.domain.ch
 #Intense scann mit UDP
 nmap -sS -sU -T4 -A -v www.domain.ch
+#Services
+nmap -sV
 
 #FTP Scan auf Ips in ips.txt normaler outpt nach ftp.txt
 nmap -p 21 -T3 -A -v -iL ips.txt -oN ftp.txt
