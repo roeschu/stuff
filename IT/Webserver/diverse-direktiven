@@ -1,0 +1,144 @@
+#################################
+
+Diverse Direktiven
+
+#################################
+
+
+#Reverse Proxy (mod_proxy benötigt) z.B im Vhost Kontext
+ProxyPass www.bla.com http://www.bla22.com
+ProxyPassReverse www.bla.com http://www.bla22.com
+
+# Fuer Prefork MPM (z.b mit PHP) Dies sind Standardwerte
+#number of server processes to start
+StartServers         5
+
+# Minimum und Maximum an Apache Childprozessen
+MinSpareServers     16
+MaxSpareServers     32
+#Concurrent Anfragen Maximum
+MaxClients          256
+
+#Definition eines allfälligen Auth Files
+AccessFileName .htaccess
+#Sichert den Zugang zu .htaccess .htpasswd files ab
+<Files ~ "^\.ht">
+    Order allow,deny
+    Deny from all
+</Files>
+
+
+
+#"Selbstreferenziert" sich auf ServerName 
+UseCanonicalName On
+
+#on / off DNS Lookups
+HostnameLookups Off
+
+#ähnlich wie ServerSignature...gibt Infos zurück z.b "Apache 2"
+ServerTokens Major
+
+#
+DirectoryIndex index.html index.cgi index.pl index.php main.htm index.htm
+
+# Abschalten von Directory listing
+Options -Indexes
+
+
+==Komprimierung mit Deflate==
+
+  #Deflate Komprimierung generell
+  SetOutputFilter DEFLATE
+  #Deflate Komprimierung in Ordner "compress"
+  <Location /compress>
+   SetOutputFilter DEFLATE
+  </Location>
+  #Deflate nur auf ausgewählte Dateien anwenden
+  <IfModule mod_deflate.c>
+        <FilesMatch "\\.(js|css|html|htm|php)$">
+                SetOutputFilter DEFLATE
+        </FilesMatch>
+  </IfModule>
+
+==JKMount + JKunmount==
+
+  JkMount  /app* worker1
+  <Location "/app*">
+  ErrorDocument 503 /error/error.html
+  </Location>
+  JkUnMount /keinjava worker1
+
+==SSL Cert Konfigdirektiven==
+
+  ##SSL Zertifikatskonfig mit Zwischenzertifikaten
+  SSLEngine On
+  SSLCACertificateFile /etc/apache2/ssl/rapid-ca2root.crt
+  SSLCertificateChainFile /etc/apache2/ssl/rapid-ica.crt
+  SSLCertificateFile /etc/apache2/ssl/domain.com.crt
+  SSLCertificateKeyFile /etc/apache2/ssl/domain.com.key
+
+==Geschützte Verzeichnisse==
+
+  <Directory /var/www/html/protected>
+   #Env VAriable setzen aufgrund von X-Forwarded-For Header, z.b wg. vorgeschaltetem Loadbalancer
+   SetEnvIf X-Forwarded-For ^192\.168\.1\.100 IPCust_env
+   #Verbiete alles wenn nicht erlaubt
+   order deny,allow
+   deny from all
+   #Erlaube nur IP welche in env Variable gespeichert ist
+   allow from env=IPCust_env
+   #User Authentifizierung
+   AuthType Basic
+   AuthName "IPCust intern"
+   AuthUserFile /var/www/.htpasswd
+   require valid-user
+   satisfy any
+  </Directory>
+ 
+==Loghandling==
+
+  #Logformat anpassen
+  LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" comb
+  #Log nicht in Datei schreiben sondern an externes Tool weitergeben
+  CustomLog "|/usr/local/bin/penlog 192.168.1.4 11111" comb
+
+==IP's via .htaccess blocken==
+
+  order deny,allow
+  deny from 156.0.145.50
+  deny from 69.48.23.21
+
+==AddHandler Beispiele==
+
+  #Perl,Cgi
+  AddHandler cgi-wrapper .cgi
+  AddHandler cgi-wrapper .pl
+  #ServerSideIncludes
+  AddHandler server-parsed .shtml .html
+  AddType text/html .shtml .html
+  #Php
+  AddType application/x-httpd-php .php4 .php5
+  AddType application/x-httpd-php .php
+
+==Simples Redirect Beispiel==
+
+  Redirect /test http://www.abc.com
+
+==CGI in bestimmten Verzeichnis==
+
+  ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+  <Directory "/usr/lib/cgi-bin">
+   AllowOverride None
+   Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
+   Order allow,deny
+   Allow from all
+  </Directory>
+
+==Bestimmte Files schützen==
+  
+  <Files ~ "^\.ht">
+  Order allow,deny
+  Deny from all
+  </Files>
+
+

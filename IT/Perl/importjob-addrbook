@@ -1,0 +1,106 @@
+=Mailserver CRM Adressbuch Import=
+==Script==
+
+  #!/usr/bin/perl
+  use Switch;
+  ################################################################################
+  # importzbrcontacts                        
+  ################################################################################
+  # VERSION=1.0
+  ################################################################################
+  # 1.0 - James 07.03.2013
+  ################################################################################
+  #Vars
+  #################################################################
+  my $curl = '/usr/bin/curl';
+  my $curlparam1 = '-k -u';
+  my $curlparam2 = 'share@domain.com:schnaxeln99';
+  my $curlparam3 = '--upload-file';
+  my $importfile = '/opt/data/importcontact.csv';
+  my $zbrurl = 'https://mail.domain.com/service/home/share@domain.com/Contacts/FIRMNAME%20Contacts%20I?fmt=csv';
+  my $debugcmd = $curl . " " . $curlparam1 . " " . $curlparam2 . " " . $curlparam3 . " " . $importfile . " " . $zbrurl;
+  my $mailer = "/usr/sbin/sendmail";
+  #################################################################
+  debug();
+  import();
+  #################################################################
+  #Function import
+  #################################################################
+  sub import
+        {
+                if (-e $importfile)
+                {
+                        my @args = ($curl,$curlparam1,$curlparam2,$curlparam3,$importfile,$zbrurl);
+                        if (system("@args")=="0")
+                        {
+                                cleanup();
+                                $msg="success";
+                                mail($msg);
+                        }
+                        else
+                        {
+                                $error = "Fehler beim absetzen des Befehls\n$debugcmd\n";
+                                print $error . "\n";
+                                $msg="error01";
+                                mail($msg);
+                        }
+                }
+                else
+                {
+                        $errormsg = "ERROR: Importfile " . $importfile . " nicht gefunden!\n";
+                        print $errormsg;
+                }
+         }
+  #################################################################
+  
+  #################################################################
+  #Function cleanup
+  #################################################################
+  sub cleanup
+        {
+                if (-e $importfile) {   unlink($importfile);    }
+        }
+  #################################################################
+  
+  ################################################################
+  #Function debug
+  #################################################################
+  sub debug
+        {
+                print "*************************************\n";
+                print "DEBUG Curl Command:\n";
+                print $debugcmd . "\n";
+                print "************************************\n";
+                print ".\n";
+                sleep(1);
+                print ".\n";
+                sleep(1);
+                print ".\n";
+        }
+  #################################################################
+    
+  #################################################################
+  #Function mail
+  #################################################################
+  sub mail
+        {
+              my $param = shift;
+              switch($param)
+                {
+                        case "success"
+                        {
+                                $mailbody = "Der Adressbuch Import ins Mailserver wurde gemacht. Eine Importkontrolle seitens Mailserver ist durch dieses Script nicht moeglich. Bei groesseren Imports sollte das Mailserver Adressbuch daher nach dem Import manuell ueberprüft werden....";
+                        }
+                        case "error01"
+                        {
+                                $mailbody = "Das Absetzen des Befehls führte zu einem Fehler. Debugging notwendig.\n\nAbgesetzter Command: " .   $debugcmd;
+                        }
+                }
+              open (MAIL, "|$mailer -t ") || die "Email error";
+              print MAIL "From: Adressbuch Import CRM - Mailserver  <root\@kubis.domain.com>\n";
+              print MAIL "To: <support\@domain.com>\n";
+              print MAIL "Subject: Adressbuch Import CRM - Mailserver \n\n";
+              print MAIL $mailbody;
+              close (MAIL);
+        }
+  #################################################################

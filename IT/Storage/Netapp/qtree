@@ -1,0 +1,15 @@
+==Qtree für neue Applikation==
+===qtree erstellen===
+In gewünschtem Volume auf gewünschtem Vfiler den qtree erstellen (es wird davon ausgegangen dass das Volume bereits besteht):
+
+  '''vfilercustomer@filer1>qtree create /vol/nfs_customer1/qtree'''
+
+===Security Style des qtrees prüfen===
+Der Qtree braucht je nach Verwendungszweck einen bestimmten Security Style (unix,ntfs,mixed). 
+
+  vfilercustomer@filer1>qtree
+  ...
+  nfs_customer qtreename '''unix'''  enabled  normal
+  ...
+
+Im vorliegenden Bespiel ist mit "unix" per Default bereits der richtige Security Style gesetzt.

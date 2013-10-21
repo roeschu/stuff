@@ -1,0 +1,33 @@
+Find Zeugs
+  
+  find / -type f -iname 'cmd*' -exec rm -f {} \;
+  find . -name '*.xml' -type f -mtime +730 -exec cp {} /home/save
+  find . -name '*.xml' -type f -mtime +730 -exec rm () \;
+
+
+Find nur Symlinks
+
+  find . -type l -print | cut -c3-90 | wc -l
+
+
+Find nach Group ID
+
+ find /home/sites/edi.begasoft.ch/users/  -group 500
+
+
+Find Edi Zeugs
+
+  find /home/users/data  -maxdepth 1 -iname '*.txt' -print
+  find /home/users/data  -maxdepth 1 -iname '*.txt' -exec rm -f {} \;
+  find /home/users/data  -maxdepth 1 -iname '*.txt'
+  find /home/users/data  -maxdepth 1 -iname '*.odf'
+  find /home/users/data  -maxdepth 2 -iname '*.odf'
+  find /home/users/data  -maxdepth 1 -iname '*.odf'
+  find /home/users/data  -maxdepth 1 -iname '*.*'
+  find /home/users/data  -maxdepth 1 -iname '*.*'
+  find /home/users/data  -maxdepth 1 -iname '*.*' -exec rm -f {} \;
+  find /home/users/data  -maxdepth 1 -iname '*.*' | wc -l
+
+
+
+

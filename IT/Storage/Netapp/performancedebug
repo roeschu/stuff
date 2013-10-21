@@ -1,0 +1,15 @@
+==Performance Debugging ==
+Siehe http://dosysadminsdream.wordpress.com/2011/05/12/netapp-performance-troubleshooting/ http://unixfoo.blogspot.ch/2007/11/netapp-performance-monitoring-sysstat_16.html
+
+  #Allgemeine Systemauslastung diverser Komponenten ausgeben
+  filer1>sysstat -x 1
+
+  #Detailiertere Auslastung diverser Komponenten (vorallem Disks)
+  #ACHTUNG: VORSICHT IM PRIVILEGE MOD....
+  #In Privilege Mod wechseln
+  '''filer1>set priv advanced'''
+  #Performance Snapshot laufen lassen (keine Ausgabe). Mind. 20-30 Sekunden laufen lassen.
+  #ACHTUNG: Muss mit "statit -e" wieder beendet werden
+  '''filer1>statit -b'''
+  #Performance Snapshot Daten ausgeben
+  '''filer1>statit -e'''

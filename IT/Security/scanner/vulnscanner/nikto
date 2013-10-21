@@ -1,0 +1,50 @@
+#Interessante Links
+http://blog.erratasec.com/2013/09/masscan-entire-internet-in-3-minutes.html#.Ujah9ManolQ
+http://zer0byte.com/2013/09/16/port-scan-entire-planet-masscan-ineternet-security-nightmare/
+
+
+
+##########################
+#Nikto
+##########################
+Manual http://cirt.net/nikto2-docs/
+
+  #Scan auf port 80
+  nikto -h www.bli.com 
+  
+  #Scan auf port 443
+  nikto -h www.bli.com -p 443
+
+  #Multiple Ports
+  nikto.pl -h 192.168.0.1 -p 80,88,443
+  
+  #IP Liste über Textfile
+  nikto.pl -h /root/ip.txt
+
+  #nmap output in nikto
+  nmap -p80 192.168.0.0/24 -oG - | nikto.pl -h -
+
+  #db update
+  nikto.pl -update
+
+  #Report Format mit -o parameter
+  -Format
+
+  #ggf. gegen IDS
+  -evasion
+
+  #Output file
+  -o 
+ 
+  #ID and password to use for host Basic host authentication. Format is "id:password".
+  --id
+  
+  #List plugins
+  -list-plugins
+
+  #Plugins auswählen tests(report:500,verbose);tests(report:500,verbose)
+  -Plugins
+
+  # Praxistests
+  nmap -Pn -p80 200.3.16.0/24 -oG - | nikto.pl -h - -o /root/braziltest.htm -Format htm
+  nikto.pl -h elvis.domain.ch -o /root/test.htm -Format htm

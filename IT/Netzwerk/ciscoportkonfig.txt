@@ -1,0 +1,31 @@
+switch01-r24>en
+
+Password:
+
+switch01-r24#conf t
+
+Enter configuration commands, one per line.  End with CNTL/Z.
+
+switch01-r24(config)#inter
+
+switch01-r24(config)#interface Gi
+
+switch01-r24(config)#interface GigabitEthernet 1/39
+
+switch01-r24(config-if)#descri
+
+switch01-r24(config-if)#description esxbltmp1
+
+switch01-r24(config-if)#switchport acc
+
+switch01-r24(config-if)#switchport access vlan 10
+
+switch01-r24(config-if)#switchport mode access
+
+switch01-r24(config-if)#speed 1000
+
+switch01-r24(config-if)#duplex full
+
+switch01-r24(config-if)#exit
+
+wr mem

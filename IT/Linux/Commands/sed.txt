@@ -1,0 +1,10 @@
+  #!/bin/bash
+  for item in $*
+  do
+  /bin/cp $item $item.bak
+  sed -f /data/scripts/.sedfile $item.bak > $item
+  done
+  
+In .sedfile Suchen ersetzen Parameter:
+
+s.39.79.g

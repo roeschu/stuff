@@ -1,0 +1,22 @@
+Monitoring Port auf cisco catalyst2950 konfigurieren
+
+-> konfigurationsmodus wechseln
+
+switch# configure terminal
+
+-> loesche alle alten monitoring ports
+
+switch# no monitor session all
+
+-> zu überwachende Ports definieren
+
+switch# monitor session 1 source interface FastEthernet0/1 - 11
+
+-> monitor port definieren
+
+switch# monitor session 1 destination interface FastEthernet0/12
+switch# end
+
+-> überprüfen der einstellungen
+
+switch# show monitor session 1

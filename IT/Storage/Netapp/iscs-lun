@@ -1,0 +1,12 @@
+==LUN Resize==
+Lun's können resized werden während sie im Betrieb (online,gemappt) sind. Zuerst muss der genaue Namen des Luns welches vergrössert werden soll herausgefunden werden. Mit "lun show" werden alle existierenden Lun's gelistet (Vfiler Kontext je nach dem anpassen):
+
+  '''vfilercustomera@filer1> lun show'''
+        /vol/iscsi_server01/backuplun  504.1g (541223424000)  (r/w, online, mapped)
+
+  
+Danach kann das gewünschte Lun mit "lun resize" vergrössert werden:
+
+  '''vfilercustomera@filer1> lun resize /vol/iscsi_server01/bcksql02/backup +52g'''
+
+Nach dem resize muss noch das Filesystem entsprechend vergrössert werden (z.b auf Windows via Diskverwaltung -> "Extend Disk") unter Linux mit den entsprechenden ext3/reiserfs etc. Tools.

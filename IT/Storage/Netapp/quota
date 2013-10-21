@@ -1,0 +1,52 @@
+===Quota Befehle===
+  http://www.wafl.co.uk/quota/
+
+==Quotas==
+===Quotas Status===
+Prüfen auf welchen Volumes quotas aktiviert sind:
+
+  vfilercustomera@filer1> quota status
+  nfs_root: quotas are off.
+  nfs: quotas are on.
+  nfstst: quotas are on.
+  nfs_customer_maildata: quotas are off.
+ 
+
+===Quotas Report===
+Quota Konfiguration eines qtree's prüfen:
+
+  vfilercustomera@filer1> quota report /vol/nfs_customer1/qtree
+                               K-Bytes             Files
+  Type       ID    Volume    Tree  Used      Limit     Used    Limit   Quota Specifier
+  ----- -------- -------- -------- --------- --------- ------- ------- ---------------
+  tree         1 nfs_customer1 qtree         0  31457280       1       - /vol/nfs_customer1/qtree
+
+===Quotas auf Volume aktivieren===
+Quota auf Volume aktivieren (funktioniert nur wenn Eintrag in /etc/quotas auf Vfiler für Volume existiert)
+
+  vfilercustomera@filer1>quota on /vol/nfs_customer1
+
+===/etc/quotas===
+Die Quota Konfiguration wird in /etc/quotas gemacht (im jeweiligen Filerroot). Für Erklärung der Syntax ist der Netapp Quota User Guide (http://media.netapp.com/documents/tr-3425.pdf) zu konsultieren.
+
+Für unsere Zwecke kann von zwei Verwendungszwecken ausgegangen werden:
+
+* Default Quota für alle Qtrees in Volume. Im folgenden Beispiel beträgt die Quota 30gb; gewarnt wird bei 27g Füllstand. Anzahl Files,Inodes etc. wird nicht beschränkt ( "-" Einträge). Der Eintrag ist gültig für alle Qtrees im Volume:
+
+  '''/etc/quotas Eintrag'''
+  *       tree@/vol/nfs_customer1   30G     -       27G     -       -
+
+* Quota für einzelne Qtrees in Volume. Im folgenden Beispiel beträgt die Quota 30gb; gewarnt wird bei 27g Füllstand. Anzahl Files,Inodes etc. wird nicht beschränkt ( "-" Einträge). Der Eintrag ist gültig für den definierten Qtree
+
+ ''' /etc/quotas Eintrag'''
+  /vol/nfs_customer1/qtreename      tree   30G     -       27G     -       -
+
+'''ACHTUNG: Changing /etc/quotas has no effect until the next time quota on or quota resize is executed.'''
+
+
+
+
+
+
+
+

@@ -1,0 +1,39 @@
+  #Zeigt Portstatus
+  show interface status
+  ...
+  Gi2/0/11                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/12  Filer  e0m         connected    10         a-full  a-100 10/100/1000BaseTX
+  Gi2/0/13                     connected    trunk      a-full a-1000 10/100/1000BaseTX
+  Gi2/0/14                     connected    trunk      a-full a-1000 10/100/1000BaseTX
+  Gi2/0/15                     connected    trunk      a-full a-1000 10/100/1000BaseTX
+  Gi2/0/16                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/17                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/18                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/19                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/20                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/21                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/22                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/23                     notconnect   1            auto   auto 10/100/1000BaseTX
+  Gi2/0/24  Link to srvpdb01   connected    trunk      a-full a-1000 10/100/1000BaseTX
+  Te2/0/1   Link to blade      connected    trunk        full    10G 10GBase-SR
+  Te2/0/2   Link to blade      connected    trunk        full    10G 10GBase-SR
+  ...
+
+
+Vlan hinzufügen
+
+  conf t
+  vlan 666
+  name Buchhaltung
+  exit
+
+
+Vlan Interface Konfigurieren (z.B Core Switch)
+  conf t
+  interface Vlan666
+  description Buchhaltungsabteilung
+  ip address 192.168.10.1 255.255.255.0
+  no ip redirect
+
+Status Interfaces
+  sh interfaces Port-Channel5

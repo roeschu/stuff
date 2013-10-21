@@ -1,0 +1,42 @@
+UUID rausfinden
+
+  xe vm-list
+  xe template-list
+  xe sr-list
+
+
+Template als VM deklarieren
+
+  xe template-param-set is-a-template=false uuid=uuid-template
+
+
+VM als .xva exportieren
+
+  xe vm-export filenamen=/nfsmount/export.xva vm=uuid-vm
+
+VM aus .xva file importieren
+
+  xe vm-import filename=/nfsmount/import.xva preserve=true sr-uuid=storagerepo-uid
+
+
+Snapshot loeschen. Kann nicht direkt gemacht werden bei 5.0 (template-uninstall nicht existent...)
+
+  xe template-param-set is-a-template=false uuid=uuid-template
+  xe vm-list (uuid rauslesen..)
+  xe vm-uninstall uuid=uuid-vm
+
+
+Ablauf für Migration von VM's unter XenCenter 5/5.5 von einem Storage Repo in ein anderes 
+(ohne Snap Mirror oder ähnlich sync tools, nur auf Xen Ebene...)
+
+  #UUID VM rausfinden
+  xe vm-list
+  #snapshot erstellen
+  xe vm-snapshot vm=802d1351-fa55-b8bd-84e5-86b728a7e6eb new-name-label=backuptest
+  #UUID Template rausfinden
+  xe template-list
+  #Installieren einer Kopie der gesnapshotteten VM. Hierbei kann kein
+  #sr-uuid Parameter mitgegeben werden, wodurch der übernächste Schritt nötig wird...
+  xe vm-install template=backuptest new-name-label=TEST 
+  #Im Xenter Center rechte Maustaste auf neue erstellte VM und mit "Copy to" oder "Move to"
+  #VM auf andere Repo verschieben (kann dauern...)

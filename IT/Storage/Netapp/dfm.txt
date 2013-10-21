@@ -1,0 +1,35 @@
+OSSV Agent aus DFM entfernen
+  dfbm primary host delete server02
+
+
+OSSV entfernen...aber nicht wirklich...
+  dfm service stop
+  dfm service start sql
+  dfm agent delete -f server02
+  dfm service start
+
+Agenten listen
+  dfm agent list
+
+Diagnos von Agente
+  dfm host diag <id-des-hosts>
+
+
+IP Adresse eines OSSV Hosts in der DB ändern
+  #1732 ist die ID des OSSV Host, herauszufinden mit "dfm agent list"
+  dfm host set 1732 hostPrimaryAddress=10.0.99.55
+
+  #Zusätzlich muss folgende Option für den nächsten Backuplauf gesetzt werden
+  dfm option set processOSSVPrimaryAddress=update
+  #Dann nach dem Backuplauf am nächsten Tag ist die IP up to date und die Option muss wieder zurückgesetzt werden
+  dfm option set processOSSVPrimaryAddress=warn
+
+DFM Services stoppen/starten
+  dfm service stop
+  dfm serivce start
+
+
+DFM Plugin installieren
+
+* Plugin herunterladen
+* Installation im DOS Command Prompt mit Befehl: dfm plugin add c:\pfad\filerconfig....zip

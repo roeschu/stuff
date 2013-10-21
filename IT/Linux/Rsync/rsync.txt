@@ -1,0 +1,17 @@
+''rsync -rvht --stats --include-from=/root/INCLUDETEST --exclude-from=/root/EXCLUDETEST /root/source/ /root/dest/''
+
+'''Im INCLUDETEST File z.B'''
+
+- *.*.*
+
++ *.doc
+
+- *.*
+
+'''Im EXCLUDETEST File z.B'''
+
+/test
+
+/sport
+
+'''Damit würden aus dem Quelldirectory nur *.doc Dateien (jedoch nicht aus dem test und sport Directory) in Zielverzeichnis gesynct.'''

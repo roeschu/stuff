@@ -1,0 +1,220 @@
+Allgemein
+
+####Snapshots auf aggregate Ebene ausschalten###
+
+  snap reserve -A <aggr> 0
+  snap sched -A <aggr> 0
+  aggr options <aggr> nosnap on
+
+###Liste aggr Grösse###
+
+  df -A aggr0
+
+
+###Liste Snapsthos###
+
+  snap list ...
+  snap list -A aggr0
+
+###Administrative Zugänge beschränken###
+
+  options httpd.admin.access host=ip,ip,ip,ip
+  options ssh.access host=ip,ip,ip
+  options trusted.hosts host=ip,ip,ip
+  options telnet.enable off
+  options rsh.enable off
+  options admin.hosts *
+
+###Snap shot volumes bearbeiten###
+
+  snapmirror quiesce volname
+  snapmirror break volname
+  vol options volname
+  vol options volname guarantee none
+  snapmirror resync volname
+
+###Vol erstellen, zu vfiler adden, snaps abschalten###
+
+  vol create volname1 aggr1 1g
+  vfiler add vcustomera /vol/volname1
+  snap sched volname 0 0 0
+
+###Vol status###
+
+  vol status
+
+
+###Dedup anschalten###
+
+  sis on </vol/volname>
+  sis status
+
+###CIFS Share,User, Volume###
+
+  #Volume erstellen
+  filer10> vol create volname1 aggr1 10g
+  #Zuordnung zum vfiler (vcustomer)
+  filer10> vfiler add vcustomer /vol/volname1
+  #Qtrees erstellen
+  vcustomer@filer10> qtree create /vol/volname1/dezastats1
+  vcustomer@filer10> qtree create /vol/volname1/dezastats2
+  #Löschen des nfs exports, welcher automatisch erstellt wurde
+  vcustomer@filer10> exportfs -z /vol/volname1
+  #User erstellen
+  vcustomer@filer10> useradmin user add cifsuser -g cifs_users
+  #Cifs Share erstellen
+  vcustomer@filer10> cifs shares -add cifsharename /vol/volname1
+  #everyone Eintrag entfernen
+  vcustomer@filer10> cifs access -delete cifssharename everyone
+  #Neuer User hinzufügen
+  vcustomer@filer10> cifs access cifssharename cifsuser rwx
+  #Cifs Shares anzeigen
+  vcustomer@filer10> cifs shares
+  Name         Mount Point                       Description
+  ----         -----------                       -----------
+  cifssharename    /vol/volname1
+  vcustomer\cifsuser / Full Control
+  #Laufwerk mappen & Zugriff
+  \\10.0.99.197\
+  Benutzername:	vcustomer\cifsuser
+  Passwort:	*******
+
+###Dedup Limiten nach Model/Ontap Version###
+  
+  http://communities.netapp.com/message/15660
+
+###SnapMirror einrichten###
+
+  Pro Volume vom vcustomer und filer2 wird auf dem filer30 ein identisches Volume erstellt.
+  1. Neues Volume erstellen
+  filer30> vol create volname1 aggr1 40g
+  2. Snapmirror erstellen
+    FilerView -> Snapmirror -> Add
+    Destination Volume: z.B. volname1
+    Destination Qtree: leer
+    Source Filer: vcustomer / filer2
+    Source Location: z.B. volname1
+    Restart Mode: Schedule Priority
+    Maximum Transfer Rate: leer
+    Use Preset Schedule
+        Repeat Mirror: Every Day
+        Start Mirror on: 2am 
+  3. Initialisierung (vol restrict)
+  filer30> vol restrict volname1
+  4. Initialisierung (FilerView)
+  FilerView -> Snapmirror -> Manage -> Advanced -> Initialize
+  5. Status überprüfen
+  filer30> snapmirror status
+  Source                            Destination                        State          Lag        Status
+  vcustomer:volname1  filer30:volname1  Uninitialized  -          Transferring  (272 MB done)
+
+
+
+### Cluster herunterfahren / Maintenance Fall ###
+'''Autosupport abschalten'''
+ filer10> options autosupport.enable off
+
+'''Cluster abschalten (auf einem Knoten)'''
+ filer10> cf disable
+
+'''Abschalten (auf beiden Knoten)'''
+ filer10> halt
+
+
+'''Shelves starten'''
+ Zuerst Shelves wieder starten. 2 - 3 Minuten warten.
+
+'''Clusterknoten starten'''
+ Beide Knoten starten
+
+'''Cluster aktivieren (auf einem Knoten)'''
+ filer10> cf enable
+
+'''Autosupport anschalten'''
+ filer10> options autosupport.enable on
+
+
+### Lun mit iscsi Mapping ###
+Siehe http://www.ehow.com/how_5490651_setup-lun-netapp-storage-system.html
+
+'''Lun erstellen'''
+  lun create -s 500g -t windows -o noreserve /vol/volname1/backuplun
+
+'''Igroup für iscsi Zugang erstellen mit IQN des Servers'''
+  igroup create -i -t windows iscsi-customera iqn.1991-05.com.microsoft:server01
+
+'''Zusätzlicher IQN zu Igroup hinzufuegen'''
+   igroup add iscsi-customera iqn.1991-05.com.microsoft:server01
+
+'''IQN aus Igroup entfernen'''
+   igroup remove iscsi-customera iqn.1991-05.com.microsoft:server01
+
+'''Mapping von Lun zu Igroup'''
+  lun map /vol/volname1/backuplun iscsi-customera
+
+'''Mapping kontrollieren'''
+  lun show -m
+
+'''Lun unmappen'''
+  lun unmap /vol/volname1/backuplun iscsi-customera
+
+'''Lun Shared Access einstellen'''
+lun share /vol/volname1/backuplun all
+
+
+
+### Volume als ESX Datastore ###
+Bei einem Volume welches als ESX Datastore über NFS gemountet wird sollte folgender NFS Parameter auf dem Filer gesetzt werden:
+  vol options VOLNAME no_atime_update on
+Je nachdem wie das Vol erstellt wird, ist dieser Parameter bereits gesetzt (z.B bei System Manager und FilerView) oder nicht gesetzt und muss manuell gesetzt werden (z.B bei Erstellung auf der Konsole)
+
+### Passwort Komplexität Filer konfigureren ###
+  ************************************************************
+  Passwort Komplexität herabsetzen, in Klammer die Standardwerte
+  ************************************************************
+  options security.passwd.rules.minimum 4 (8)
+  options security.passwd.rules.minimum.alphabetic 0 (2) 
+  options security.passwd.rules.minimum.digit 0 (1)
+  ************************************************************
+
+### Spare auf Konsole zuordnen  ###
+  ************************************************************
+  Spare auf Konsole zuordnen 
+  ************************************************************
+  aggr add aggr0 <spareanzahl>
+  ***********************************************************
+
+### Stats (cpu,nfs etc.) ###
+  ************************************************************
+  Stats
+  ************************************************************
+  sysstat -x 1
+  priv set diag
+  filer2*> sysstat -M 1
+
+### Raid DP Aggr konvertieren in Raid 4 ###
+  aggr options aggr0
+  aggr options aggr0 raidtype raid4
+
+
+###VM Restore aus Remote Location schlägt fehl (Oncommand)###
+Bei einem Restore einer VM in der Vsphere5 Umgebung mit Oncommand schlägt der Restore fehl. In der Jobbeschreibung steht etwas betreffend '''"...options vfiler.vol_clone_zapi_allow not enabled..."'''. Diese Option kann unter Ontap 7.x nach einem Filer Reboot auf "off" stehen. Dies ist ein Bug unter Ontap 7.x https://communities.netapp.com/thread/15230. Die Options muss auf den Filern gesetzt werden mit
+
+  options vfiler.vol_clone_zapi_allow on
+
+
+
+###VAAI aktivieren###
+
+  filer> options vstorage.copy_offload.enable on
+
+* Video: http://techdemo.de/techdemo-online/posts/netapp-vaai-vsphere-demo.html
+
+###Direkt auf Filer kopieren###
+  #Noch nie verwendet. Zuerst testen!!!
+  ndmpcopy /vol/volume1/.snapshot/hourly.0/qtree/pfad/mein_file.txt  /vol/volume2/qtree/pfad
+
+
+
+
+

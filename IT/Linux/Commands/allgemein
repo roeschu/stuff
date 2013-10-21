@@ -1,0 +1,10 @@
+Divers
+
+  #Library Pfad
+  ldconfig -p | grep -i libpg.so.5
+
+  #Grep, suchen nach Dateiinhalt
+  grep -iR 'test*' /
+
+  #Installierte Perl Module listen
+  perl -MFile::Find=find -MFile::Spec::Functions -Tlwe 'find { wanted => sub { print canonpath $_ if /\.pm\z/ }, no_chdir => 1 }, @INC' |

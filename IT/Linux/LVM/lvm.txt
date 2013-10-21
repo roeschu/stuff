@@ -1,0 +1,47 @@
+fdisk -l
+
+Using the whole secondary hard disk for LVM partition:
+fdisk /dev/hdb
+
+At the Linux fdisk command prompt,
+
+    press n to create a new disk partition,
+    press p to create a primary disk partition,
+    press 1 to denote it as 1st disk partition,
+    press ENTER twice to accept the default of 1st and last cylinder – to convert the whole secondary hard disk to a single disk partition,
+    press t (will automatically select the only partition – partition 1) to change the default Linux partition type (0×83) to LVM partition type (0x8e),
+    press L to list all the currently supported partition type,
+    press 8e (as per the L listing) to change partition 1 to 8e, i.e. Linux LVM partition type,
+    press p to display the secondary hard disk partition setup. Please take note that the first partition is denoted as /dev/hdb1 in Linux,
+    press w to write the partition table and exit fdisk upon completion.
+
+
+Server neu starten
+host#>reboot
+   
+Physical Volume erstellen   
+pvcreate /dev/sdb1
+
+VolGroup erweitern
+vgextend VolGroup00 /dev/sdb1
+
+Logical Volume vergrössern
+lvextend -L+1G /dev/mapper/VolGroup00-home
+
+Umount
+umount /home
+
+Logical Volume auf Fehler überprüfen
+e2fsck -f /dev/mapper/VolGroup00-home
+
+Filesystem vergrössern
+resize2fs /dev/mapper/VolGroup00-home
+
+Mount
+mount -a
+
+Diverse Kommandos
+fdisk -l
+vgscan
+pvscan
+lvscan

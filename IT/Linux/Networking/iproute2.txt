@@ -1,0 +1,90 @@
+[http://www.brudermann.net/linux/iproute2.txt IProute2, Zwei Provider] 
+
+Routing über 2 oder meherere verschiedene Gateways mit IPRoute2
+
+
+Rechner Konfig
+
+eth0 = 192.168.1.10 / gateway 192.168.1.1
+eth1 = 195.120.20.10 / gateway 195.120.20.1
+
+
+1) IPRoute2-2.x.x installieren
+
+
+2) Tables in rt_tables bilden. Tablename muss zwingend "Nikky" und "Karol" sein
+
+echo 200 nikky >> /etc/iproute2/rt_tables
+echo 201 karol >> /etc/iproute2/rt_tables
+
+
+3) Routen setzen in erstellten Tables
+
+für eth0....
+
+ip route add 192.168.1.0 dev eth0 src 192.168.1.10 table nikky
+ip route add default via 192.168.1.1 table nikky
+
+
+für eth1....
+
+ip route add 195.120.20.0 dev eth1 src 195.120.20.10 table karol
+ip route add default via 195.120.20.1 table karol
+
+
+4) "Haupt"routing konfigurieren
+
+für eth0....
+
+ip route add 192.168.1.0 dev eth0 src 192.168.1.10
+
+
+für eth1....
+
+ip route add 195.120.20.0 dev eth1 src 195.120.20.10
+
+
+5) Default Route setzen
+
+ip route add default via 192.168.1.1
+
+
+6) Ruleset
+
+für eth0....
+
+ip rule add from 192.168.1.10 table nikky
+
+
+für eth1....
+
+ip rule add from 195.120.20.10 table karol
+
+
+Päckli welche über eth0 (also Provider A) reinkommen gehen so auch auf diesem Weg wieder raus. Päckli welche über Provider B
+reinkommen gehen über Provider B wieder raus. 
+
+                                                                 ________
+                                          +------------+        /
+                                          |            |       |
+                            +-------------+ Provider 1 +-------
+        __                  |             |            |     /
+    ___/  \_         +------+-------+     +------------+    |
+  _/        \__      |     if1      |                      /
+ /             \     |              |                      |
+  | Local network -----+ Linux router |                      |     Internet
+ \_           __/    |              |                      |
+   \__     __/       |     if2      |                      \
+      \___/          +------+-------+     +------------+    |
+                            |             |            |     \
+                            +-------------+ Provider 2 +-------
+                                          |            |       |
+                                          +------------+        \________
+
+
+
+
+
+Iproute2 howto:
+
+http://lartc.org/howto/lartc.rpdb.multiple-links.html

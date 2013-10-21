@@ -12,3 +12,29 @@ RewriteRule .* - [F]
 #Besipiel für einfache RewriteRule
 RewriteRule ^/images/cartoon$ http://www.waltdisney.com/cartoon [L,R]
 
+#https erzwingen
+#Umleitung anhand von Protokollart mit rewrite
+RewriteCond %{SERVER_PROTOCOL} HTTP
+RewriteRule ^/(.*)$ https://www.domain.com/$1 [R,L]
+
+#User Agent/Bots blocken
+#Blockt alles was mit "Firefox" beginnt und "TrackBack/1.02
+RewriteEngine On
+RewriteCond %{HTTP_USER_AGENT} ^Firefox
+RewriteRule ^.*$ - [F]
+RewriteCond %{HTTP_USER_AGENT} TrackBack/1.02
+RewriteRule ^.*$ - [F] 
+
+#Rewrite Beispiele fuer Sprachumleitung
+# help de
+RewriteCond %{HTTP_HOST}                ^downloads.xxx.ch$ [OR]
+RewriteCond %{HTTP_HOST}                ^download.xxxx.ch$ [NC]
+RewriteCond %{REQUEST_URI}              ^/de
+RewriteRule ^/(.*)                      http://www.xxx.com/de/service/help.html  [L,R]
+# help fr
+RewriteCond %{HTTP_HOST}                ^downloads.xxxx.ch$ [OR]
+RewriteCond %{HTTP_HOST}                ^download.xxx.ch$ [NC]
+RewriteCond %{REQUEST_URI}              ^/fr
+RewriteRule ^/(.*)                      http://www.xxx.ch/fr/help.html  [L,R]
+
+

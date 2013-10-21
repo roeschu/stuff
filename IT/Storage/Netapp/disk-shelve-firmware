@@ -1,0 +1,14 @@
+==Disk/Shelve Firmware Upgrade==
+Kann i.d.R(!) während dem Betrieb gemacht werden.
+
+1. Download der Firmware
+
+  http://support.netapp.com/NOW/download/tools/diskqual/qual_devices.zip
+  http://support.netapp.com/NOW/download/tools/diskfw/bin/all.zip
+  http://support.netapp.com/NOW/download/tools/diskshelf/bin/all_shelf_fw.zip
+
+2. Entpacken. Aus dem qual_devices.zip brauchts nur das qual_devices_v3 File
+
+3. Via NFS Filer Root mount (oder Win c$ Adminshare) Files in Ordner <filerroot>/etc/acpp_fw ../etc/disk_fw und ../etc/shelve_fw löschen
+
+4. Entpackten Files in die entsprechenden Ordner rüberkopieren.

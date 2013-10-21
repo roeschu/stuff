@@ -1,0 +1,32 @@
+Centos dummy
+
+  #Repo ausschliessen, einschliessen zur Laufzeit
+  yum install pgadmin3 --disablerepo=pgdg84
+  yum install pgadmin3 --enablerepo=pgdg84
+
+  #Paketgruppen installieren
+  yum groupinstall 'Development Tools'
+  yum groupinstall "X Window System"
+
+  #Dependencies zu versuchen umgehen
+  yum install --skip-broken pgadmin3
+
+  #Startup Dienste List
+  chkconfig --list
+
+  #Dienst adden startup
+  chkconfig --add vncserver
+
+  #Dienst zu Runlevel hinzufügen
+  chkconfig --level 234 vncserver on
+
+  #RPM Mirror installieren
+  rpm -Uvh http://yum.pgsqlrpms.org/reporpms/8.4/pgdg-centos-8.4-1.noarch.rpm
+
+  #Dienste starten stoppen init
+  service tomcat stop
+  service tomcat start
+
+  #Tastaturlayout /etc/sysconfig/keyboard
+  KEYBOARDTYPE="pc"
+  KEYTABLE="de_CH-latin1"

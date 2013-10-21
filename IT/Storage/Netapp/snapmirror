@@ -1,0 +1,26 @@
+=Snapmirror=
+==Snapmirror Status==
+  #Snapmirror Statuse inkl. Vfiler
+  filer1> vfiler run * snapmirror status
+  
+  #Snapmirror Status detailiert
+  filer1> snapmirror status -l
+
+==Snapmirror starten ohne Scheduler Eintrag==
+  #Zuerst Quelle dann Destination...
+  filer1>snapmirror initialize -S 10.111.0.123:BESVOL11 vfiler1:BESCOM11_DBx
+
+==Snapmirror brechen==
+  #quiescen...
+  filer1>snapmirror quiesce voldsb
+  #breaken...
+  filer1>snapmirror break voldsb
+
+==Snapmirror manuelles Update==
+  filer1> vfiler run vfiler1 snapmirror update vfiler1b:DS_SWAP
+
+==Snapmirror Snapshots anschauen==
+  snap list DS_DBDATA
+
+==Verwaiste Snapmirror Relations löschen==
+  https://kb.netapp.com/support/index?page=content&id=1011269
