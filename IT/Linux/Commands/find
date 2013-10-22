@@ -12,7 +12,7 @@ Find nur Symlinks
 
 Find nach Group ID
 
- find /home/sites/edi.begasoft.ch/users/  -group 500
+ find /home/users/  -group 500
 
 
 Find Edi Zeugs
