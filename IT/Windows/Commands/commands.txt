@@ -1,0 +1,70 @@
+############################
+#ServerCore und Gui cmdlets
+############################
+#Install/Uninstall ServerGui
+Install-WindowsFeature Server-Gui-Mgmt-Infra,Server-Gui-Shell -Restart
+Uninstall-WindowsFeature Server-Gui-Mgmt-Infra,Server-Gui-Shell -Restart
+
+#Server Gui vollständig aus System entfernen (löscht Dateien aus aus WinSxS)
+Uninstall-WindowsFeature Server-Gui-Mgtm-Infra,Server-Gui-Shell -Remove 
+###########################
+
+############################
+#Domain join Konsole
+############################
+netdom join %ComputerName% /domain: <domainname> /userd: <username> /passwordd:* (*fragt Passwort für angegebene Benuterkonto ab)
+
+############################
+#Rename Server
+############################
+netdom renamecomputer %ComputerName% /NewName: <Newcomputernam>
+
+############################
+#Rollen/Features
+############################
+#Abfrage Kurznamen der Rollen in Powershell
+Get-WindowsFeature 
+
+#Install Rollen/Features
+Install-WindowsFeature FS-Fileserver,Web-Server,Web-FTP-Service 
+
+#Import Rollen/Features aus XML
+Install-WindowsFeature -ConfigurationFilePath <exportedconfig.xml>
+
+
+############################
+#Speicherzeugs
+############################
+#Flag canpool „yes“ damit Disk Speicherpool fähig ist
+Get-PhysicalDisk 
+Get-StorageSubsystem
+
+#Speicherpool via cmdlet erstellen
+New-StoragePool -FriendlyName <Pooname> -StorageSubSystemFriendlyName <Name des Subsystems> -PhysicalDisks <Datenträgernamen>
+
+
+############################
+#Firewall Zeugs
+############################
+Set-NetFirewallRule -name ...
+Get-NetFirewallRule                     
+Set-NetFirewallRule -name RemoteEventLogSvc-IN-TCP -enabled True ....       
+
+
+############################
+#Auf Prä win 2012 via Powershell Rollen/Features installieren
+############################
+Enter-PSSession <remoteservername> -credential
+Get-WindowsFeature
+Install-WindowsFeature <Featurename> IncludeManagementTools
+Exit-PSSession
+
+
+############################
+#Diverses
+############################
+Set-RemoteDesktop -Enable
+netsh.exe Konfiguration IP
+
+
+

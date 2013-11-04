@@ -1,0 +1,35 @@
+###############################
+#John the ripper, /etc/passwd crack, very simple
+###############################
+http://www.openwall.com/john/doc/EXAMPLES.shtml
+http://www.liatsisfotis.com/2012/12/crack-passwords-using-john-ripper.html
+
+
+#Merge passwd mit shadow
+/usr/bin/unshadow /etc/passwd /etc/shadow > /tmp/crack.password.db
+
+
+#Fuer schwache PW's (simples BruteForce)
+#This will try "single crack" mode first, then use a wordlist with rules, and finally go for "incremental" mode
+homebox# john /tmp/crack.pw 
+Loaded 4 password hashes with 4 different salts (generic crypt(3) [?/64])
+test             (test)
+abcde            (test1)
+...
+
+#Anzeigen der gecrackten PW's
+homebox# john -show /tmp/crack.pw 
+test:test:1002:1002::/home/test:/bin/sh
+1 password hash cracked, 3 left
+
+#Wortliste verwenden
+#homebox # john --wordlist:password.lst /tmp/crack.pw 
+Loaded 4 password hashes with 4 different salts (generic crypt(3) [?/64])
+Remaining 2 password hashes with 2 different salts
+sommer2012          (rocky)
+guesses: 1  time: 0:00:00:00 100%  c/s: 40.00  trying: gonzo78
+Use the "--show" option to display all of the cracked passwords reliably
+
+
+
+

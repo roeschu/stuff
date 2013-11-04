@@ -1,0 +1,2 @@
+
+nc -z my.domaain.com 1-1023
