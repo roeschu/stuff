@@ -1,0 +1,88 @@
+#############
+#Hashcat
+#############
+http://hashcat.net/wiki/
+http://ixplizit.wordpress.com/2012/04/08/hashcat-the-very-basic/
+http://samsclass.info/123/proj10/p12-hashcat.htm
+
+#############
+#Diverses
+##############
+#Hash Type von passwd nachschauen unter Linux
+more  /etc/pam.d/common-password
+
+#oder
+more /etc/login.defs  | grep SHA
+# If set to SHA256, SHA256-based algorithm will be used for encrypting password
+# If set to SHA512, SHA512-based algorithm will be used for encrypting password
+ENCRYPT_METHOD SHA512
+....
+
+#Attack Mode Schalter -a
+Attack modes:
+
+    0 = Straight
+    1 = Combination
+    2 = Toggle-Case
+    3 = Brute-force
+    4 = Permutation
+    5 = Table-Lookup
+
+
+#######################################
+#Wordlist dict. attack auf Linux PW's 
+#######################################
+
+#Linux Hashs vorbereiten
+#File darf in diesem bsp. nur Hashes enthalten
+more  /etc/shadow | grep test | cut -d : -f 2 > /tmp/testcrack
+more /tmp/testcrack 
+$6$YnnProSt$1jLDJ3F9P1NicJ.mA9Vg2xKqMF5YQeZXmysTY6YVsMQCaMfp0KQ.lPAzE3BUsQx0EiADAoJfkWgxeI6Iw2vEg.
+...
+
+
+#Dict. attack
+#Schalter -m: Hashtyp (1800 Unix SHA512)
+#Schalter -a: Attack Mode (0 straight)
+#Schalter --outfile: Outputfile
+#Schalter --remove: remove gefundene Hashs
+#Verwende rockyou.txt Wordliste
+#################################
+
+/hashcat-cli64.bin -m 1800 -a 0  --outfile=/tmp/hashcat.output --remove /tmp/testcrack  /home/roeschu/rockyou.txt
+Initializing hashcat v0.46 by atom with 8 threads and 32mb segment-size...
+
+Added hashes from file /tmp/testcrack: 11 (11 salts)
+NOTE: press enter for status-screen
+
+Input.Mode: Dict (/home/roeschu/rockyou.txt)
+Index.....: 1/5 (segment), 3560289 (words), 33550343 (bytes)
+Recovered.: 0/11 hashes, 0/11 salts
+Speed/sec.: 882 plains, 80 words
+Progress..: 380/3560289 (0.01%)
+Running...: 00:00:00:05
+Estimated.: 00:12:21:38
+....
+
+############################
+#Beispiel GPU Cracking
+#############################
+http://hashcat.net/oclhashcat-plus/
+GPU Driver and SDK Requirements:
+    NV users require ForceWare 319.37 or later
+    AMD users require Catalyst 13.4 or later
+
+############################
+-m 1800 = SHA512
+--attack-mode 3 = Brute Force
+--custome-charset1 = zu verwendende Charset
+?l?u?d?s = lowercase uppercase digits symbols
+--outfile = output file
+/tmp/testcrack = hashfile
+?1?1?1?1?1?1?1?1?1 = 8 Zeichen
+#############################
+./cudaHashcat-plus64.bin -m 1800 --attack-mode 3 --custom-charset1 ?l?u?d?s --outfile /tmp/brute.out /tmp/testcrack ?1?1?1?1?1?1?1?1?1
+
+
+
+
